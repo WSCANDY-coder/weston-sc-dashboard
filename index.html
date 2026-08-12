@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weston SC - Master Performance Portal</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #334155;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #d97706;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --sidebar-width: 250px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { display: flex; background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+
+    /* Navigation Sidebar */
+    aside {
+      width: var(--sidebar-width);
+      background-color: #020617;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+    .nav-item {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .nav-item:hover, .nav-item.active {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      border-left: 4px solid var(--accent-cyan);
+    }
+
+    /* Main Content Area */
+    main { flex-grow: 1; padding: 2rem; overflow-y: auto; max-height: 100vh; }
+    
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+    .top-bar h1 { font-size: 1.8rem; font-weight: 700; }
+    .top-bar p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .view-content { display: none; }
+    .view-content.active { display: block; }
+
+    /* Overview Action Grid */
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 160px;
+    }
+    .card-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.5);
+      background-color: var(--bg-card-hover);
+    }
+    .card-btn.times { border-top: 4px solid var(--accent-blue); }
+    .card-btn.relays { border-top: 4px solid var(--accent-emerald); }
+    .card-btn.county { border-top: 4px solid var(--accent-amber); }
+    .card-btn.bsg { border-top: 4px solid var(--accent-purple); }
+    .card-btn.selection { border-top: 4px solid var(--accent-rose); }
+
+    .card-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
+    .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .card-badge {
+      align-self: flex-start;
+      margin-top: 1rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Controls & Inputs */
+    .controls-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .search-input, .select-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .search-input { flex-grow: 1; min-width: 220px; }
+    .search-input:focus, .select-input:focus { border-color: var(--accent-cyan); }
+
+    /* Tables */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    th {
+      background-color: #0f172a;
+      color: var(--text-muted);
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
+
+    /* Relay Card List */
+    .v10-relay-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .v10-relay-row {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: 60px 120px 160px 1fr 140px;
+      align-items: center;
+      gap: 1rem;
+    }
+    @media (max-width: 900px) { .v10-relay-row { grid-template-columns: 1fr; gap: 0.75rem; } }
+
+    .v10-event-num { font-weight: 800; color: var(--accent-cyan); font-size: 1.1rem; }
+    .v10-badge {
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-block;
+      text-align: center;
+    }
+    .v10-badge.boy { background-color: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+    .v10-badge.girl { background-color: rgba(244, 63, 94, 0.2); color: #fca5a5; }
+    .v10-badge.mixed { background-color: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
+
+    .v10-race-title { font-weight: 700; color: var(--text-main); font-size: 0.95rem; }
+    .v10-legs-flex { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+    .v10-leg-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      min-width: 140px;
+    }
+    .v10-leg-stroke { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .v10-leg-swimmer { font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-top: 0.15rem; }
+    .v10-leg-split { color: var(--accent-cyan); font-family: monospace; font-weight: 600; font-size: 0.8rem; margin-left: 0.35rem; }
+
+    .v10-team-total { text-align: right; font-family: monospace; font-weight: 800; font-size: 1.1rem; }
+    .v10-team-total.valid { color: var(--accent-emerald); }
+    .v10-team-total.incomplete { color: var(--accent-amber); font-size: 0.85rem; }
+
+    /* Modal Overlay Styles */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-backdrop.hidden { display: none; }
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+    .modal-header h3 { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-body { padding: 1rem 0; overflow-y: auto; flex-grow: 1; }
+    .modal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; }
+    .event-badge-card { padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.5); }
+    .event-badge-card.too-fast { border-color: rgba(244, 63, 94, 0.4); background: rgba(244, 63, 94, 0.1); }
+    .event-badge-card.slower { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); }
+    .event-badge-card.qualified { border-color: rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.1); }
+
+    .btn-info {
+      background: var(--accent-cyan);
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    .btn-info:hover { opacity: 0.9; }
+
+    /* Squad Movements Grid */
+    .squad-columns-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .squad-column { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; }
+    .squad-column h3 { font-size: 0.95rem; color: var(--accent-cyan); padding-bottom: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+    .squad-member { padding: 0.4rem 0.6rem; background: rgba(255, 255, 255, 0.03); border-radius: 6px; margin-bottom: 0.4rem; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">🏊 Weston SC Portal</div>
+    <ul class="nav-list">
+      <li id="tab-overview" class="nav-item active" onclick="switchView('overview')">🏠 Overview</li>
+      <li id="tab-times" class="nav-item" onclick="switchView('times')">⏱️ LC & SC Times</li>
+      <li id="tab-relays" class="nav-item" onclick="switchView('relays')">🏊‍♂️ SC Relays</li>
+      <li id="tab-bsg" class="nav-item" onclick="switchView('bsg')">🏅 BSG L2 Times</li>
+      <li id="tab-devlop" class="nav-item" onclick="switchView('devlop')">📈 Devlop '26</li>
+      <li id="tab-county" class="nav-item" onclick="switchView('county')">🏆 County Times</li>
+      <li id="tab-selection" class="nav-item" onclick="switchView('selection')">📋 Arena League Selection</li>
+      <li id="tab-movements" class="nav-item" onclick="switchView('movements')">📊 Squad Movements</li>
+      <li id="tab-calendar" class="nav-item" onclick="switchView('calendar')">📅 Meet Calendar</li>
+    </ul>
+  </aside>
+
+  <!-- Main View Area -->
+  <main>
+    <div class="top-bar">
+      <div>
+        <h1 id="view-title">Overview</h1>
+        <p id="view-desc">Central hub for Weston SC swim analytics, LC & SC times, and qualification metrics.</p>
+      </div>
+    </div>
+
+    <!-- VIEW 1: Overview Dashboard -->
+    <div id="view-overview" class="view-content active">
+      <div class="action-grid">
+        <div class="card-btn times" onclick="switchView('times')">
+          <div>
+            <div class="card-icon">⏱️</div>
+            <div class="card-title">LC & SC Times Database</div>
+            <div class="card-desc">Search personal bests across short course (25m) and long course (50m) meets.</div>
+          </div>
+          <span class="card-badge">430+ Official Times</span>
+        </div>
+
+        <div class="card-btn relays" onclick="switchView('relays')">
+          <div>
+            <div class="card-icon">🏊‍♂️</div>
+            <div class="card-title">SC Relays</div>
+            <div class="card-desc">View official relay team assignments, leg splits, and team totals.</div>
+          </div>
+          <span class="card-badge">21 Relay Events</span>
+        </div>
+
+        <div class="card-btn bsg" onclick="switchView('bsg')">
+          <div>
+            <div class="card-icon">🏅</div>
+            <div class="card-title">BSG L2 Times</div>
+            <div class="card-desc">Monitor Level 2 Bristol & South Glos qualification counts and event details.</div>
+          </div>
+          <span class="card-badge">Level 2 Standards</span>
+        </div>
+
+        <div class="card-btn devlop" onclick="switchView('devlop')">
+          <div>
+            <div class="card-icon">📈</div>
+            <div class="card-title">Devlop '26 Progress</div>
+            <div class="card-desc">Analyze event eligibility, unentered events, and cut-off status.</div>
+          </div>
+          <span class="card-badge">40 Swimmers Tracked</span>
+        </div>
+
+        <div class="card-btn county" onclick="switchView('county')">
+          <div>
+            <div class="card-icon">🏆</div>
+            <div class="card-title">County Times</div>
+            <div class="card-desc">Track swimmer eligibility and qualified standards for Somerset County Meets.</div>
+          </div>
+          <span class="card-badge">County Standards</span>
+        </div>
+
+        <div class="card-btn selection" onclick="switchView('selection')">
+          <div>
+            <div class="card-icon">📋</div>
+            <div class="card-title">Arena League Selection Report</div>
+            <div class="card-desc">Review assigned swimmer selections for individual and team gala races.</div>
+          </div>
+          <span class="card-badge">51 Races Assigned</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: LC & SC Times Lookup -->
+    <div id="view-times" class="view-content">
+      <div class="controls-row">
+        <input type="text" id="times-search" class="search-input" placeholder="Search swimmer name or event..." oninput="filterTimes()">
+        <select id="times-course-select" class="select-input" onchange="filterTimes()">
+          <option value="ALL">All Courses (LC & SC)</option>
+          <option value="25m (SC)">Short Course (25m)</option>
+          <option value="50m (LC)">Long Course (50m)</option>
+        </select>
+        <select id="times-event-select" class="select-input" onchange="filterTimes()">
+          <option value="ALL">All Events</option>
+          <option value="50 Freestyle">50 Freestyle</option>
+          <option value="100 Freestyle">100 Freestyle</option>
+          <option value="50 Backstroke">50 Backstroke</option>
+          <option value="100 Backstroke">100 Backstroke</option>
+          <option value="50 Breaststroke">50 Breaststroke</option>
+          <option value="100 Breaststroke">100 Breaststroke</option>
+          <option value="50 Butterfly">50 Butterfly</option>
+          <option value="100 Butterfly">100 Butterfly</option>
+          <option value="100 Individual Medley">100 IM</option>
+          <option value="200 Individual Medley">200 IM</option>
+        </select>
+      </div>
+      <div class="table-container">
+        <table id="times-table">
+          <thead>
+            <tr>
+              <th>Swimmer Name</th>
+              <th>ASA Number</th>
+              <th>Event</th>
+              <th>Course</th>
+              <th>Time</th>
+              <th>Date</th>
+              <th>Meet / Venue</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 3: SC Relays -->
+    <div id="view-relays" class="view-content">
+      <div class="controls-row">
+        <input type="text" id="relay-search" class="search-input" placeholder="Search relay race, gender, or swimmer..." oninput="filterRelays()">
+        <select id="relay-filter-gender" class="select-input" onchange="filterRelays()">
+          <option value="ALL">All Genders</option>
+          <option value="Boy">Boys</option>
+          <option value="Girl">Girls</option>
+          <option value="Mixed">Mixed</option>
+        </select>
+      </div>
+      <div id="v10-relay-container" class="v10-relay-list"></div>
+    </div>
+
+    <!-- VIEW 4: BSG L2 Times -->
+    <div id="view-bsg" class="view-content">
+      <div class="controls-row">
+        <input type="text" id="bsg-search" class="search-input" placeholder="Search swimmer..." oninput="filterBSG()">
+      </div>
+      <div class="table-container">
+        <table id="bsg-table">
+          <thead>
+            <tr>
+              <th>Swimmer Name</th>
+              <th>ASA Number</th>
+              <th>Gender (Age)</th>
+              <th>Age Group</th>
+              <th>Events Logged</th>
+              <th>Qualified Count</th>
+              <th>Slower Count</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 5: Devlop '26 -->
+    <div id="view-devlop" class="view-content">
+      <div class="controls-row">
+        <input type="text" id="devlop-search" class="search-input" placeholder="Search swimmer..." oninput="filterDevlop()">
+      </div>
+      <div class="table-container">
+        <table id="devlop-table">
+          <thead>
+            <tr>
+              <th>Swimmer Name</th>
+              <th>ASA Number</th>
+              <th>Gender (Age)</th>
+              <th>Age Group</th>
+              <th>Events Logged</th>
+              <th>Slower Count</th>
+              <th>Too Fast Count</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 6: County Times -->
+    <div id="view-county" class="view-content">
+      <div class="controls-row">
+        <input type="text" id="county-search" class="search-input" placeholder="Search swimmer..." oninput="filterCounty()">
+      </div>
+      <div class="table-container">
+        <table id="county-table">
+          <thead>
+            <tr>
+              <th>Swimmer Name</th>
+              <th>ASA Number</th>
+              <th>Gender</th>
+              <th>Age Group</th>
+              <th>Qualified Count</th>
+              <th>Slower Count</th>
+              <th>Unentered Count</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 7: Selection Report -->
+    <div id="view-selection" class="view-content">
+      <div class="controls-row">
+        <input type="text" id="selection-search" class="search-input" placeholder="Search race, event title, or swimmer..." oninput="filterSelection()">
+      </div>
+      <div class="table-container">
+        <table id="selection-table">
+          <thead>
+            <tr>
+              <th>Race #</th>
+              <th>Age Group</th>
+              <th>Gender</th>
+              <th>Event Title</th>
+              <th>Selected Swimmer</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 8: Squad Movements -->
+    <div id="view-movements" class="view-content">
+      <div id="movements-table-container">
+        <div id="squad-grid" class="squad-columns-grid"></div>
+      </div>
+    </div>
+
+    <!-- VIEW 9: Calendar -->
+    <div id="view-calendar" class="view-content">
+      <div class="table-container">
+        <table id="calendar-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Gala / Event Title</th>
+              <th>Venue / Location</th>
+            </tr>
+          </thead>
+          <tbody id="calendar-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- DEVLOP '26 EVENT MODAL -->
+  <div id="devlop-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="devlop-modal-title">Devlop '26 Details</h3>
+        <button class="modal-close" onclick="closeDevlopModal()">&times;</button>
+      </div>
+      <div id="devlop-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- BSG L2 EVENT MODAL -->
+  <div id="bsg-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="bsg-modal-title">BSG L2 Details</h3>
+        <button class="modal-close" onclick="closeBSGModal()">&times;</button>
+      </div>
+      <div id="bsg-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- COUNTY TIMES EVENT MODAL -->
+  <div id="county-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="county-modal-title">County Times Details</h3>
+        <button class="modal-close" onclick="closeCountyModal()">&times;</button>
+      </div>
+      <div id="county-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
