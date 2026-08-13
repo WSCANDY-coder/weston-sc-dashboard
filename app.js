@@ -1,5 +1,5 @@
 /*******************************************************************************
- * WESTON SC MASTER DASHBOARD - APP.JS (Clean & Stable Baseline)
+ * WESTON SC MASTER DASHBOARD - APP.JS (Clean & Stable Baseline - Mobile Optimized)
  ******************************************************************************/
 
 let CALENDAR_DATA = [];
@@ -88,6 +88,14 @@ function initDashboard() {
     }
 }
 
+// TOGGLE MOBILE SIDEBAR DRAWER
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar-nav');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.toggle('mobile-open');
+    if (overlay) overlay.classList.toggle('active');
+}
+
 // 1. VIEW SWITCHING
 function switchView(viewId) {
     document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
@@ -98,6 +106,14 @@ function switchView(viewId) {
     
     const targetNav = document.getElementById('tab-' + viewId);
     if (targetNav) targetNav.classList.add('active');
+
+    // Automatically collapse drawer on mobile views after selection
+    const sidebar = document.getElementById('sidebar-nav');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+        sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('active');
+    }
 
     const titles = {
         'overview': ['Overview', 'Central hub for Weston SC swim analytics, times, and qualification metrics.'],
@@ -475,6 +491,7 @@ window.filterCounty = renderCounty;
 window.openCountyModal = openCountyModal;
 window.closeCountyModal = closeCountyModal;
 window.filterSelection = filterSelection;
+window.toggleMobileSidebar = toggleMobileSidebar;
 
 // Attach initialization handlers safely
 if (document.readyState === 'loading') {

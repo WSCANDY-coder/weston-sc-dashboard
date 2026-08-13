@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weston SC - Master Performance Portal</title>
   <style>
+    /* --- CSS VARIABLES & BASE THEME --- */
     :root {
       --bg-dark: #0f172a;
       --bg-card: #1e293b;
@@ -18,13 +19,13 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
-      --sidebar-width: 250px;
+      --sidebar-width: 260px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     body { display: flex; background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
 
-    /* Navigation Sidebar */
+    /* --- SIDEBAR NAVIGATION (DESKTOP DEFAULT) --- */
     aside {
       width: var(--sidebar-width);
       background-color: #020617;
@@ -33,6 +34,8 @@
       flex-direction: column;
       padding: 1.5rem 1rem;
       flex-shrink: 0;
+      transition: transform 0.3s ease;
+      z-index: 1000;
     }
 
     .brand {
@@ -64,9 +67,17 @@
       border-left: 4px solid var(--accent-cyan);
     }
 
-    /* Main Content Area */
-    main { flex-grow: 1; padding: 2rem; overflow-y: auto; max-height: 100vh; }
-    
+    /* --- MAIN CONTENT & WRAPPER --- */
+    .wrapper {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+    }
+
+    main { flex-grow: 1; padding: 2rem; overflow-y: auto; }
+
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -110,6 +121,7 @@
     .card-btn.county { border-top: 4px solid var(--accent-amber); }
     .card-btn.bsg { border-top: 4px solid var(--accent-purple); }
     .card-btn.selection { border-top: 4px solid var(--accent-rose); }
+    .card-btn.devlop { border-top: 4px solid var(--accent-cyan); }
 
     .card-icon { font-size: 2rem; margin-bottom: 0.5rem; }
     .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
@@ -174,7 +186,6 @@
       align-items: center;
       gap: 1rem;
     }
-    @media (max-width: 900px) { .v10-relay-row { grid-template-columns: 1fr; gap: 0.75rem; } }
 
     .v10-event-num { font-weight: 800; color: var(--accent-cyan); font-size: 1.1rem; }
     .v10-badge {
@@ -217,7 +228,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 1100;
       padding: 1rem;
     }
     .modal-backdrop.hidden { display: none; }
@@ -261,12 +272,79 @@
     .squad-column { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; }
     .squad-column h3 { font-size: 0.95rem; color: var(--accent-cyan); padding-bottom: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
     .squad-member { padding: 0.4rem 0.6rem; background: rgba(255, 255, 255, 0.03); border-radius: 6px; margin-bottom: 0.4rem; font-size: 0.85rem; }
+
+    /* --- MOBILE & TABLET RESPONSIVE NAVIGATION --- */
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #020617;
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 900;
+    }
+
+    .menu-toggle-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 998;
+      display: none;
+    }
+    .sidebar-overlay.active { display: block; }
+
+    /* Mobile Breakpoint Adjustments */
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      .mobile-header { display: flex; }
+      
+      aside {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 4px 0 12px rgba(0,0,0,0.5);
+      }
+      aside.mobile-open { transform: translateX(0); }
+
+      .wrapper { height: auto; min-height: calc(100vh - 65px); }
+      main { padding: 1.25rem; }
+      .v10-relay-row { grid-template-columns: 1fr; gap: 0.75rem; }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Mobile Header Bar -->
+  <header class="mobile-header">
+    <div class="brand" style="margin-bottom: 0;">🏊 Weston SC Portal</div>
+    <button class="menu-toggle-btn" onclick="toggleSidebar()">
+      ☰ <span>Menu</span>
+    </button>
+  </header>
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <!-- Navigation Sidebar -->
-  <aside>
+  <aside id="sidebar">
     <div class="brand">🏊 Weston SC Portal</div>
     <ul class="nav-list">
       <li id="tab-overview" class="nav-item active" onclick="switchView('overview')">🏠 Overview</li>
@@ -281,246 +359,248 @@
     </ul>
   </aside>
 
-  <!-- Main View Area -->
-  <main>
-    <div class="top-bar">
-      <div>
-        <h1 id="view-title">Overview</h1>
-        <p id="view-desc">Central hub for Weston SC swim analytics, LC & SC times, and qualification metrics.</p>
-      </div>
-    </div>
-
-    <!-- VIEW 1: Overview Dashboard -->
-    <div id="view-overview" class="view-content active">
-      <div class="action-grid">
-        <div class="card-btn times" onclick="switchView('times')">
-          <div>
-            <div class="card-icon">⏱️</div>
-            <div class="card-title">LC & SC Times Database</div>
-            <div class="card-desc">Search personal bests across short course (25m) and long course (50m) meets.</div>
-          </div>
-          <span class="card-badge">430+ Official Times</span>
-        </div>
-
-        <div class="card-btn relays" onclick="switchView('relays')">
-          <div>
-            <div class="card-icon">🏊‍♂️</div>
-            <div class="card-title">SC Relays</div>
-            <div class="card-desc">View official relay team assignments, leg splits, and team totals.</div>
-          </div>
-          <span class="card-badge">21 Relay Events</span>
-        </div>
-
-        <div class="card-btn bsg" onclick="switchView('bsg')">
-          <div>
-            <div class="card-icon">🏅</div>
-            <div class="card-title">BSG L2 Times</div>
-            <div class="card-desc">Monitor Level 2 Bristol & South Glos qualification counts and event details.</div>
-          </div>
-          <span class="card-badge">Level 2 Standards</span>
-        </div>
-
-        <div class="card-btn devlop" onclick="switchView('devlop')">
-          <div>
-            <div class="card-icon">📈</div>
-            <div class="card-title">Devlop '26 Progress</div>
-            <div class="card-desc">Analyze event eligibility, unentered events, and cut-off status.</div>
-          </div>
-          <span class="card-badge">40 Swimmers Tracked</span>
-        </div>
-
-        <div class="card-btn county" onclick="switchView('county')">
-          <div>
-            <div class="card-icon">🏆</div>
-            <div class="card-title">County Times</div>
-            <div class="card-desc">Track swimmer eligibility and qualified standards for Somerset County Meets.</div>
-          </div>
-          <span class="card-badge">County Standards</span>
-        </div>
-
-        <div class="card-btn selection" onclick="switchView('selection')">
-          <div>
-            <div class="card-icon">📋</div>
-            <div class="card-title">Arena League Selection Report</div>
-            <div class="card-desc">Review assigned swimmer selections for individual and team gala races.</div>
-          </div>
-          <span class="card-badge">51 Races Assigned</span>
+  <!-- Main View Area Wrapper -->
+  <div class="wrapper">
+    <main>
+      <div class="top-bar">
+        <div>
+          <h1 id="view-title">Overview</h1>
+          <p id="view-desc">Central hub for Weston SC swim analytics, LC & SC times, and qualification metrics.</p>
         </div>
       </div>
-    </div>
 
-    <!-- VIEW 2: LC & SC Times Lookup -->
-    <div id="view-times" class="view-content">
-      <div class="controls-row">
-        <input type="text" id="times-search" class="search-input" placeholder="Search swimmer name or event..." oninput="filterTimes()">
-        <select id="times-course-select" class="select-input" onchange="filterTimes()">
-          <option value="ALL">All Courses (LC & SC)</option>
-          <option value="25m (SC)">Short Course (25m)</option>
-          <option value="50m (LC)">Long Course (50m)</option>
-        </select>
-        <select id="times-event-select" class="select-input" onchange="filterTimes()">
-          <option value="ALL">All Events</option>
-          <option value="50 Freestyle">50 Freestyle</option>
-          <option value="100 Freestyle">100 Freestyle</option>
-          <option value="50 Backstroke">50 Backstroke</option>
-          <option value="100 Backstroke">100 Backstroke</option>
-          <option value="50 Breaststroke">50 Breaststroke</option>
-          <option value="100 Breaststroke">100 Breaststroke</option>
-          <option value="50 Butterfly">50 Butterfly</option>
-          <option value="100 Butterfly">100 Butterfly</option>
-          <option value="100 Individual Medley">100 IM</option>
-          <option value="200 Individual Medley">200 IM</option>
-        </select>
-      </div>
-      <div class="table-container">
-        <table id="times-table">
-          <thead>
-            <tr>
-              <th>Swimmer Name</th>
-              <th>ASA Number</th>
-              <th>Event</th>
-              <th>Course</th>
-              <th>Time</th>
-              <th>Date</th>
-              <th>Meet / Venue</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+      <!-- VIEW 1: Overview Dashboard -->
+      <div id="view-overview" class="view-content active">
+        <div class="action-grid">
+          <div class="card-btn times" onclick="switchView('times')">
+            <div>
+              <div class="card-icon">⏱️</div>
+              <div class="card-title">LC & SC Times Database</div>
+              <div class="card-desc">Search personal bests across short course (25m) and long course (50m) meets.</div>
+            </div>
+            <span class="card-badge">430+ Official Times</span>
+          </div>
 
-    <!-- VIEW 3: SC Relays -->
-    <div id="view-relays" class="view-content">
-      <div class="controls-row">
-        <input type="text" id="relay-search" class="search-input" placeholder="Search relay race, gender, or swimmer..." oninput="filterRelays()">
-        <select id="relay-filter-gender" class="select-input" onchange="filterRelays()">
-          <option value="ALL">All Genders</option>
-          <option value="Boy">Boys</option>
-          <option value="Girl">Girls</option>
-          <option value="Mixed">Mixed</option>
-        </select>
-      </div>
-      <div id="v10-relay-container" class="v10-relay-list"></div>
-    </div>
+          <div class="card-btn relays" onclick="switchView('relays')">
+            <div>
+              <div class="card-icon">🏊‍♂️</div>
+              <div class="card-title">SC Relays</div>
+              <div class="card-desc">View official relay team assignments, leg splits, and team totals.</div>
+            </div>
+            <span class="card-badge">21 Relay Events</span>
+          </div>
 
-    <!-- VIEW 4: BSG L2 Times -->
-    <div id="view-bsg" class="view-content">
-      <div class="controls-row">
-        <input type="text" id="bsg-search" class="search-input" placeholder="Search swimmer..." oninput="filterBSG()">
-      </div>
-      <div class="table-container">
-        <table id="bsg-table">
-          <thead>
-            <tr>
-              <th>Swimmer Name</th>
-              <th>ASA Number</th>
-              <th>Gender (Age)</th>
-              <th>Age Group</th>
-              <th>Events Logged</th>
-              <th>Qualified Count</th>
-              <th>Slower Count</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+          <div class="card-btn bsg" onclick="switchView('bsg')">
+            <div>
+              <div class="card-icon">🏅</div>
+              <div class="card-title">BSG L2 Times</div>
+              <div class="card-desc">Monitor Level 2 Bristol & South Glos qualification counts and event details.</div>
+            </div>
+            <span class="card-badge">Level 2 Standards</span>
+          </div>
 
-    <!-- VIEW 5: Devlop '26 -->
-    <div id="view-devlop" class="view-content">
-      <div class="controls-row">
-        <input type="text" id="devlop-search" class="search-input" placeholder="Search swimmer..." oninput="filterDevlop()">
-      </div>
-      <div class="table-container">
-        <table id="devlop-table">
-          <thead>
-            <tr>
-              <th>Swimmer Name</th>
-              <th>ASA Number</th>
-              <th>Gender (Age)</th>
-              <th>Age Group</th>
-              <th>Events Logged</th>
-              <th>Slower Count</th>
-              <th>Too Fast Count</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+          <div class="card-btn devlop" onclick="switchView('devlop')">
+            <div>
+              <div class="card-icon">📈</div>
+              <div class="card-title">Devlop '26 Progress</div>
+              <div class="card-desc">Analyze event eligibility, unentered events, and cut-off status.</div>
+            </div>
+            <span class="card-badge">40 Swimmers Tracked</span>
+          </div>
 
-    <!-- VIEW 6: County Times -->
-    <div id="view-county" class="view-content">
-      <div class="controls-row">
-        <input type="text" id="county-search" class="search-input" placeholder="Search swimmer..." oninput="filterCounty()">
-      </div>
-      <div class="table-container">
-        <table id="county-table">
-          <thead>
-            <tr>
-              <th>Swimmer Name</th>
-              <th>ASA Number</th>
-              <th>Gender</th>
-              <th>Age Group</th>
-              <th>Qualified Count</th>
-              <th>Slower Count</th>
-              <th>Unentered Count</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+          <div class="card-btn county" onclick="switchView('county')">
+            <div>
+              <div class="card-icon">🏆</div>
+              <div class="card-title">County Times</div>
+              <div class="card-desc">Track swimmer eligibility and qualified standards for Somerset County Meets.</div>
+            </div>
+            <span class="card-badge">County Standards</span>
+          </div>
 
-    <!-- VIEW 7: Selection Report -->
-    <div id="view-selection" class="view-content">
-      <div class="controls-row">
-        <input type="text" id="selection-search" class="search-input" placeholder="Search race, event title, or swimmer..." oninput="filterSelection()">
+          <div class="card-btn selection" onclick="switchView('selection')">
+            <div>
+              <div class="card-icon">📋</div>
+              <div class="card-title">Arena League Selection Report</div>
+              <div class="card-desc">Review assigned swimmer selections for individual and team gala races.</div>
+            </div>
+            <span class="card-badge">51 Races Assigned</span>
+          </div>
+        </div>
       </div>
-      <div class="table-container">
-        <table id="selection-table">
-          <thead>
-            <tr>
-              <th>Race #</th>
-              <th>Age Group</th>
-              <th>Gender</th>
-              <th>Event Title</th>
-              <th>Selected Swimmer</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- VIEW 8: Squad Movements -->
-    <div id="view-movements" class="view-content">
-      <div id="movements-table-container">
-        <div id="squad-grid" class="squad-columns-grid"></div>
+      <!-- VIEW 2: LC & SC Times Lookup -->
+      <div id="view-times" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="times-search" class="search-input" placeholder="Search swimmer name or event..." oninput="filterTimes()">
+          <select id="times-course-select" class="select-input" onchange="filterTimes()">
+            <option value="ALL">All Courses (LC & SC)</option>
+            <option value="25m (SC)">Short Course (25m)</option>
+            <option value="50m (LC)">Long Course (50m)</option>
+          </select>
+          <select id="times-event-select" class="select-input" onchange="filterTimes()">
+            <option value="ALL">All Events</option>
+            <option value="50 Freestyle">50 Freestyle</option>
+            <option value="100 Freestyle">100 Freestyle</option>
+            <option value="50 Backstroke">50 Backstroke</option>
+            <option value="100 Backstroke">100 Backstroke</option>
+            <option value="50 Breaststroke">50 Breaststroke</option>
+            <option value="100 Breaststroke">100 Breaststroke</option>
+            <option value="50 Butterfly">50 Butterfly</option>
+            <option value="100 Butterfly">100 Butterfly</option>
+            <option value="100 Individual Medley">100 IM</option>
+            <option value="200 Individual Medley">200 IM</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table id="times-table">
+            <thead>
+              <tr>
+                <th>Swimmer Name</th>
+                <th>ASA Number</th>
+                <th>Event</th>
+                <th>Course</th>
+                <th>Time</th>
+                <th>Date</th>
+                <th>Meet / Venue</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- VIEW 9: Calendar -->
-    <div id="view-calendar" class="view-content">
-      <div class="table-container">
-        <table id="calendar-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Gala / Event Title</th>
-              <th>Venue / Location</th>
-            </tr>
-          </thead>
-          <tbody id="calendar-table-body"></tbody>
-        </table>
+      <!-- VIEW 3: SC Relays -->
+      <div id="view-relays" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="relay-search" class="search-input" placeholder="Search relay race, gender, or swimmer..." oninput="filterRelays()">
+          <select id="relay-filter-gender" class="select-input" onchange="filterRelays()">
+            <option value="ALL">All Genders</option>
+            <option value="Boy">Boys</option>
+            <option value="Girl">Girls</option>
+            <option value="Mixed">Mixed</option>
+          </select>
+        </div>
+        <div id="v10-relay-container" class="v10-relay-list"></div>
       </div>
-    </div>
 
-  </main>
+      <!-- VIEW 4: BSG L2 Times -->
+      <div id="view-bsg" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="bsg-search" class="search-input" placeholder="Search swimmer..." oninput="filterBSG()">
+        </div>
+        <div class="table-container">
+          <table id="bsg-table">
+            <thead>
+              <tr>
+                <th>Swimmer Name</th>
+                <th>ASA Number</th>
+                <th>Gender (Age)</th>
+                <th>Age Group</th>
+                <th>Events Logged</th>
+                <th>Qualified Count</th>
+                <th>Slower Count</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW 5: Devlop '26 -->
+      <div id="view-devlop" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="devlop-search" class="search-input" placeholder="Search swimmer..." oninput="filterDevlop()">
+        </div>
+        <div class="table-container">
+          <table id="devlop-table">
+            <thead>
+              <tr>
+                <th>Swimmer Name</th>
+                <th>ASA Number</th>
+                <th>Gender (Age)</th>
+                <th>Age Group</th>
+                <th>Events Logged</th>
+                <th>Slower Count</th>
+                <th>Too Fast Count</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW 6: County Times -->
+      <div id="view-county" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="county-search" class="search-input" placeholder="Search swimmer..." oninput="filterCounty()">
+        </div>
+        <div class="table-container">
+          <table id="county-table">
+            <thead>
+              <tr>
+                <th>Swimmer Name</th>
+                <th>ASA Number</th>
+                <th>Gender</th>
+                <th>Age Group</th>
+                <th>Qualified Count</th>
+                <th>Slower Count</th>
+                <th>Unentered Count</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW 7: Selection Report -->
+      <div id="view-selection" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="selection-search" class="search-input" placeholder="Search race, event title, or swimmer..." oninput="filterSelection()">
+        </div>
+        <div class="table-container">
+          <table id="selection-table">
+            <thead>
+              <tr>
+                <th>Race #</th>
+                <th>Age Group</th>
+                <th>Gender</th>
+                <th>Event Title</th>
+                <th>Selected Swimmer</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW 8: Squad Movements -->
+      <div id="view-movements" class="view-content">
+        <div id="movements-table-container">
+          <div id="squad-grid" class="squad-columns-grid"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 9: Calendar -->
+      <div id="view-calendar" class="view-content">
+        <div class="table-container">
+          <table id="calendar-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Gala / Event Title</th>
+                <th>Venue / Location</th>
+              </tr>
+            </thead>
+            <tbody id="calendar-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
 
   <!-- DEVLOP '26 EVENT MODAL -->
   <div id="devlop-modal" class="modal-backdrop hidden">
@@ -555,8 +635,46 @@
     </div>
   </div>
 
+  <!-- DATA & APP LOGIC -->
   <script src="data.js"></script>
   <script src="app.js"></script>
+
+  <!-- MOBILE SIDEBAR TOGGLE & NAV EXTENSION -->
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('mobile-open');
+      overlay.classList.toggle('active');
+    }
+
+    // Intercept switchView calls to close mobile drawer on smaller screens
+    const originalSwitchView = window.switchView;
+    window.switchView = function(viewId) {
+      if (typeof originalSwitchView === 'function') {
+        originalSwitchView(viewId);
+      } else {
+        // Fallback tab switcher if app.js is loading dynamically
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const activeTab = document.getElementById('tab-' + viewId);
+        if (activeTab) activeTab.classList.add('active');
+
+        document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+        const targetView = document.getElementById('view-' + viewId);
+        if (targetView) targetView.classList.add('active');
+      }
+
+      // Auto-close mobile drawer on link click
+      if (window.innerWidth <= 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar.classList.contains('mobile-open')) {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      }
+    };
+  </script>
 
 </body>
 </html>
