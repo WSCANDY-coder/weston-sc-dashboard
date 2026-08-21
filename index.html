@@ -19,52 +19,79 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
-      --sidebar-width: 260px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-    body { display: flex; background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+    body { display: flex; flex-direction: column; background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
 
-    /* --- SIDEBAR NAVIGATION (DESKTOP DEFAULT) --- */
-    aside {
-      width: var(--sidebar-width);
+    /* --- TOP HORIZONTAL NAVIGATION BAR --- */
+    header.top-navbar {
       background-color: #020617;
-      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
-      flex-direction: column;
-      padding: 1.5rem 1rem;
-      flex-shrink: 0;
-      transition: transform 0.3s ease;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
       z-index: 1000;
+      gap: 1.5rem;
     }
 
     .brand {
-      font-size: 1.25rem;
-      font-weight: 700;
+      font-size: 1.15rem;
+      font-weight: 800;
       color: var(--accent-cyan);
-      margin-bottom: 2rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      white-space: nowrap;
+      margin-bottom: 0;
     }
 
-    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+    .horizontal-nav {
+      flex-grow: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .horizontal-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      align-items: center;
+      white-space: nowrap;
+    }
+
     .nav-item {
-      padding: 0.75rem 1rem;
+      padding: 0.6rem 1rem;
       border-radius: 8px;
       color: var(--text-muted);
       cursor: pointer;
-      font-weight: 500;
-      font-size: 0.9rem;
+      font-weight: 600;
+      font-size: 0.85rem;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
+      border: 1px solid transparent;
+      border-bottom: 3px solid transparent;
     }
-    .nav-item:hover, .nav-item.active {
-      background-color: var(--bg-card);
+
+    .nav-item:hover {
+      background-color: rgba(255, 255, 255, 0.05);
       color: var(--text-main);
-      border-left: 4px solid var(--accent-cyan);
+    }
+
+    .nav-item.active {
+      background-color: var(--bg-card);
+      color: var(--accent-cyan);
+      border-color: var(--border-color);
+      border-bottom-color: var(--accent-cyan);
     }
 
     /* --- MAIN CONTENT & WRAPPER --- */
@@ -72,11 +99,11 @@
       flex-grow: 1;
       display: flex;
       flex-direction: column;
+      width: 100%;
       min-width: 0;
-      height: 100vh;
     }
 
-    main { flex-grow: 1; padding: 2rem; overflow-y: auto; }
+    main { flex-grow: 1; padding: 1.75rem 2rem; overflow-y: auto; }
 
     .top-bar {
       display: flex;
@@ -273,91 +300,33 @@
     .squad-column h3 { font-size: 0.95rem; color: var(--accent-cyan); padding-bottom: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
     .squad-member { padding: 0.4rem 0.6rem; background: rgba(255, 255, 255, 0.03); border-radius: 6px; margin-bottom: 0.4rem; font-size: 0.85rem; }
 
-    /* --- MOBILE & TABLET RESPONSIVE NAVIGATION --- */
-    .mobile-header {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #020617;
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 900;
-    }
-
-    .menu-toggle-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 0.5rem 0.85rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .sidebar-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 998;
-      display: none;
-    }
-    .sidebar-overlay.active { display: block; }
-
     /* Mobile Breakpoint Adjustments */
     @media (max-width: 1024px) {
-      body { flex-direction: column; }
-      .mobile-header { display: flex; }
-      
-      aside {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        transform: translateX(-100%);
-        box-shadow: 4px 0 12px rgba(0,0,0,0.5);
-      }
-      aside.mobile-open { transform: translateX(0); }
-
-      .wrapper { height: auto; min-height: calc(100vh - 65px); }
       main { padding: 1.25rem; }
       .v10-relay-row { grid-template-columns: 1fr; gap: 0.75rem; }
+      header.top-navbar { padding: 0.75rem 1rem; gap: 1rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Mobile Header Bar -->
-  <header class="mobile-header">
-    <div class="brand" style="margin-bottom: 0;">🏊 Weston SC Portal</div>
-    <button class="menu-toggle-btn" onclick="toggleSidebar()">
-      ☰ <span>Menu</span>
-    </button>
-  </header>
-
-  <!-- Mobile Sidebar Backdrop Overlay -->
-  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-  <!-- Navigation Sidebar -->
-  <aside id="sidebar">
+  <!-- Top Horizontal Navigation Bar -->
+  <header class="top-navbar">
     <div class="brand">🏊 Weston SC Portal</div>
-    <ul class="nav-list">
-      <li id="tab-overview" class="nav-item active" onclick="switchView('overview')">🏠 Overview</li>
-      <li id="tab-times" class="nav-item" onclick="switchView('times')">⏱️ LC & SC Times</li>
-      <li id="tab-relays" class="nav-item" onclick="switchView('relays')">🏊‍♂️ SC Relays</li>
-      <li id="tab-bsg" class="nav-item" onclick="switchView('bsg')">🏅 BSG L2 Times</li>
-      <li id="tab-devlop" class="nav-item" onclick="switchView('devlop')">📈 Devlop '26</li>
-      <li id="tab-county" class="nav-item" onclick="switchView('county')">🏆 County Times</li>
-      <li id="tab-selection" class="nav-item" onclick="switchView('selection')">📋 Arena League Selection</li>
-      <li id="tab-movements" class="nav-item" onclick="switchView('movements')">📊 Squad Movements</li>
-      <li id="tab-calendar" class="nav-item" onclick="switchView('calendar')">📅 Meet Calendar</li>
-    </ul>
-  </aside>
+    <nav class="horizontal-nav">
+      <ul class="nav-list">
+        <li id="tab-overview" class="nav-item active" onclick="switchView('overview')">🏠 Overview</li>
+        <li id="tab-swimmers" class="nav-item" onclick="switchView('swimmers')">🏊‍♀️ Swimmers Dashboard</li>
+        <li id="tab-relays" class="nav-item" onclick="switchView('relays')">🏊‍♂️ SC Relays</li>
+        <li id="tab-bsg" class="nav-item" onclick="switchView('bsg')">🏅 BSG L2 Times</li>
+        <li id="tab-devlop" class="nav-item" onclick="switchView('devlop')">📈 Devlop '26</li>
+        <li id="tab-county" class="nav-item" onclick="switchView('county')">🏆 County Times</li>
+        <li id="tab-selection" class="nav-item" onclick="switchView('selection')">📋 Arena League Selection</li>
+        <li id="tab-movements" class="nav-item" onclick="switchView('movements')">📊 Squad Movements</li>
+        <li id="tab-calendar" class="nav-item" onclick="switchView('calendar')">📅 Meet Calendar</li>
+      </ul>
+    </nav>
+  </header>
 
   <!-- Main View Area Wrapper -->
   <div class="wrapper">
@@ -369,16 +338,28 @@
         </div>
       </div>
 
+      <!-- TOP URGENT ANNOUNCEMENT BANNER -->
+      <div id="top-announcement-banner" style="margin-bottom: 1.25rem;"></div>
+
       <!-- VIEW 1: Overview Dashboard -->
       <div id="view-overview" class="view-content active">
         <div class="action-grid">
-          <div class="card-btn times" onclick="switchView('times')">
+          <div class="card-btn notices" style="border-top: 4px solid var(--accent-amber);" onclick="openNoticesModal()">
             <div>
-              <div class="card-icon">⏱️</div>
-              <div class="card-title">LC & SC Times Database</div>
-              <div class="card-desc">Search personal bests across short course (25m) and long course (50m) meets.</div>
+              <div class="card-icon">📢</div>
+              <div class="card-title">Club Notices & News</div>
+              <div class="card-desc">Official Weston SC announcements, gala entry deadlines, and squad updates.</div>
             </div>
-            <span class="card-badge">430+ Official Times</span>
+            <span class="card-badge" id="overview-notices-badge" style="background: rgba(245,158,11,0.2); color: var(--accent-amber); border-color: var(--accent-amber);">2 Active Notices</span>
+          </div>
+
+          <div class="card-btn swimmers" style="border-top: 4px solid var(--accent-cyan);" onclick="switchView('swimmers')">
+            <div>
+              <div class="card-icon">🏊‍♀️</div>
+              <div class="card-title">Swimmers Dashboard</div>
+              <div class="card-desc">Detailed performance history, personal bests, and meet times across all Weston SC swimmers.</div>
+            </div>
+            <span class="card-badge" id="overview-swimmers-badge">1,000+ Raw Times</span>
           </div>
 
           <div class="card-btn relays" onclick="switchView('relays')">
@@ -425,43 +406,70 @@
             </div>
             <span class="card-badge">51 Races Assigned</span>
           </div>
+
+          <div class="card-btn calendar" style="border-top: 4px solid var(--accent-amber);" onclick="switchView('calendar')">
+            <div>
+              <div class="card-icon">📅</div>
+              <div class="card-title">Meet Calendar</div>
+              <div class="card-desc">Scheduled galas, upcoming competitions, and venue details.</div>
+            </div>
+            <span class="card-badge" id="overview-calendar-badge">Calendar Events</span>
+          </div>
+
+          <div class="card-btn movements" style="border-top: 4px solid var(--accent-blue);" onclick="switchView('movements')">
+            <div>
+              <div class="card-icon">📊</div>
+              <div class="card-title">Squad Movements</div>
+              <div class="card-desc">Review squad roster hierarchy from Club Link through Regional Performance.</div>
+            </div>
+            <span class="card-badge">Squad Hierarchy</span>
+          </div>
         </div>
       </div>
 
-      <!-- VIEW 2: LC & SC Times Lookup -->
-      <div id="view-times" class="view-content">
+      <!-- VIEW 2: Swimmers Dashboard -->
+      <div id="view-swimmers" class="view-content">
         <div class="controls-row">
-          <input type="text" id="times-search" class="search-input" placeholder="Search swimmer name or event..." oninput="filterTimes()">
-          <select id="times-course-select" class="select-input" onchange="filterTimes()">
-            <option value="ALL">All Courses (LC & SC)</option>
-            <option value="25m (SC)">Short Course (25m)</option>
-            <option value="50m (LC)">Long Course (50m)</option>
+          <input type="text" id="swimmers-search" class="search-input" placeholder="Search swimmer name, event, meet, or venue..." oninput="filterSwimmers()">
+          <select id="swimmers-name-select" class="select-input" onchange="filterSwimmers()">
+            <option value="ALL">All Swimmers</option>
           </select>
-          <select id="times-event-select" class="select-input" onchange="filterTimes()">
+          <select id="swimmers-event-select" class="select-input" onchange="filterSwimmers()">
             <option value="ALL">All Events</option>
-            <option value="50 Freestyle">50 Freestyle</option>
-            <option value="100 Freestyle">100 Freestyle</option>
-            <option value="50 Backstroke">50 Backstroke</option>
-            <option value="100 Backstroke">100 Backstroke</option>
-            <option value="50 Breaststroke">50 Breaststroke</option>
-            <option value="100 Breaststroke">100 Breaststroke</option>
-            <option value="50 Butterfly">50 Butterfly</option>
-            <option value="100 Butterfly">100 Butterfly</option>
-            <option value="100 Individual Medley">100 IM</option>
-            <option value="200 Individual Medley">200 IM</option>
+          </select>
+          <select id="swimmers-course-select" class="select-input" onchange="filterSwimmers()">
+            <option value="ALL">All Courses</option>
+            <option value="LC">Long Course (LC)</option>
+            <option value="SC">Short Course (SC)</option>
+          </select>
+          <select id="swimmers-county-select" class="select-input" onchange="filterSwimmers()">
+            <option value="ALL">All County Status</option>
+            <option value="QUALIFIED">🏆 County Qualifiers Only</option>
+          </select>
+          <select id="swimmers-timeframe-select" class="select-input" onchange="filterSwimmers()">
+            <option value="ALL">All Time</option>
+            <option value="12M">📅 Past 12 Months</option>
+            <option value="6M">📅 Past 6 Months</option>
+            <option value="2026">📅 2026 Season</option>
           </select>
         </div>
+
+        <div id="swimmer-summary-banner" style="margin-bottom: 1rem;"></div>
+
         <div class="table-container">
-          <table id="times-table">
+          <table id="swimmers-table">
             <thead>
               <tr>
                 <th>Swimmer Name</th>
-                <th>ASA Number</th>
+                <th>SE #</th>
                 <th>Event</th>
                 <th>Course</th>
-                <th>Time</th>
+                <th>Display Time</th>
+                <th>Converted Time</th>
+                <th>WA Points</th>
                 <th>Date</th>
                 <th>Meet / Venue</th>
+                <th>County QT</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -585,6 +593,9 @@
 
       <!-- VIEW 9: Calendar -->
       <div id="view-calendar" class="view-content">
+        <div class="controls-row">
+          <input type="text" id="calendar-search" class="search-input" placeholder="Search gala event title, date, or venue..." oninput="filterCalendar()">
+        </div>
         <div class="table-container">
           <table id="calendar-table">
             <thead>
@@ -635,7 +646,36 @@
     </div>
   </div>
 
+  <!-- SWIMMER PROFILE & PB MODAL -->
+  <div id="swimmer-profile-modal" class="modal-backdrop hidden">
+    <div class="modal-card" style="max-width: 800px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="swimmer-modal-name">Swimmer Personal Bests</h3>
+          <p id="swimmer-modal-sub" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;"></p>
+        </div>
+        <button class="modal-close" onclick="closeSwimmerModal()">&times;</button>
+      </div>
+      <div id="swimmer-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- CLUB NOTICES MODAL -->
+  <div id="notices-modal" class="modal-backdrop hidden" onclick="if(event.target === this) closeNoticesModal()">
+    <div class="modal-card" style="max-width: 720px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="notices-modal-title">📢 Weston SC - Club Notices & News</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">Official announcements, squad schedules, and gala deadlines</p>
+        </div>
+        <button class="modal-close" onclick="closeNoticesModal()">&times;</button>
+      </div>
+      <div id="notices-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
   <!-- DATA & APP LOGIC -->
+  <script src="raw_data.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 
