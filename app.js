@@ -108,6 +108,8 @@ function initDashboard() {
             SQUAD_LIST_DATA   = getDataset(rawData, ["Sept_Movements", "Squad Movements", "Movements"]);
         }
 
+        loadLiveSquadMovements();
+
         // Safely execute view renderers
         if (document.querySelector('#swimmers-table tbody')) {
             populateSwimmersDropdowns(RAW_SWIMMERS_DATA);
@@ -212,23 +214,19 @@ function populateSwimmersDropdowns(data) {
     const swimmerSelect = document.getElementById('swimmers-name-select');
     if (!data || !data.length) return;
 
-    if (swimmerSelect && swimmerSelect.options.length <= 1) {
+    if (swimmerSelect && swimmerSelect.options.length <= 2) {
         const uniqueSwimmers = Array.from(new Set(data.map(r => r.swimmerName).filter(Boolean))).sort();
+        swimmerSelect.innerHTML = '<option value="NONE" selected>👤 Choose a Swimmer...</option><option value="ALL">All Swimmers (A-Z)</option>';
         uniqueSwimmers.forEach(name => {
             const opt = document.createElement('option');
             opt.value = name;
             opt.textContent = name;
             swimmerSelect.appendChild(opt);
         });
-
-        // Default to the first swimmer alphabetically (A-Z)
-        if (uniqueSwimmers.length > 0) {
-            swimmerSelect.value = uniqueSwimmers[0];
-        }
+        swimmerSelect.value = 'NONE';
     }
 
-    const currentSwimmer = swimmerSelect?.value || 'ALL';
-    updateEventOptions(currentSwimmer);
+    updateEventOptions('NONE');
 }
 
 function getCourse(r) {
@@ -286,7 +284,6 @@ const EVENT_STROKE_MAP = {
 
 function buildSwimEnglandHistoryUrl(seNumber, eventName, course = 'S') {
   if (!seNumber) return '';
-
   if (!eventName || eventName === 'ALL') {
     return `https://www.swimmingresults.org/individualbest/personal_best_time_date.php?back=individualbest&tiref=${seNumber}&mode=A`;
   }
@@ -332,15 +329,81 @@ function checkCountyStatusForRecord(swimmerName, seNumber, eventName) {
     return null;
 }
 
+const SWIMMER_EVENT_ORDER = [
+    "50 Freestyle", "100 Freestyle", "200 Freestyle", "400 Freestyle", "800 Freestyle", "1500 Freestyle",
+    "50 Backstroke", "100 Backstroke", "200 Backstroke",
+    "50 Breaststroke", "100 Breaststroke", "200 Breaststroke",
+    "50 Butterfly", "100 Butterfly", "200 Butterfly",
+    "100 Individual Medley", "100 IM", "200 Individual Medley", "200 IM", "400 Individual Medley", "400 IM"
+];
+
+function getEventSortIndex(evtName) {
+    if (!evtName) return 99;
+    const clean = String(evtName).trim();
+    const idx = SWIMMER_EVENT_ORDER.indexOf(clean);
+    return idx !== -1 ? idx : 99;
+}
+
+function sortSwimmerRecords(records, isAllSwimmers) {
+    return records.sort((a, b) => {
+        if (isAllSwimmers) {
+            const nameA = (a.swimmerName || '').trim();
+            const nameB = (b.swimmerName || '').trim();
+            const nameCmp = nameA.localeCompare(nameB);
+            if (nameCmp !== 0) return nameCmp;
+        }
+
+        const posA = getEventSortIndex(a.event);
+        const posB = getEventSortIndex(b.event);
+        if (posA !== posB) return posA - posB;
+
+        const evtCmp = (a.event || '').localeCompare(b.event || '');
+        if (evtCmp !== 0) return evtCmp;
+
+        const dateA = parseRecordDate(a.date) || new Date(0);
+        const dateB = parseRecordDate(b.date) || new Date(0);
+        return dateB - dateA;
+    });
+}
+
+function extractFastestPBs(records) {
+    const pbMap = {};
+    records.forEach(r => {
+        const cCourse = getCourse(r);
+        const name = r.swimmerName || 'SWIMMER';
+        const key = `${name}_${r.event}_${cCourse}`;
+        const tSec = Number(r.timeSec) || 999999;
+
+        if (!pbMap[key] || tSec < (Number(pbMap[key].timeSec) || 999999)) {
+            pbMap[key] = { ...r, isPB: true };
+        }
+    });
+
+    return Object.values(pbMap);
+}
+
 function renderSwimmersDashboard(data) {
     const tbody = document.querySelector('#swimmers-table tbody');
     if (!tbody) return;
 
-    // Render Swimmer County Summary Banner if a swimmer is selected
     const bannerContainer = document.getElementById('swimmer-summary-banner');
+    const selectedSwimmer = document.getElementById('swimmers-name-select')?.value;
+    const qVal = (document.getElementById('swimmers-search')?.value || '').trim();
+
     if (bannerContainer) {
-        const selectedSwimmer = document.getElementById('swimmers-name-select')?.value;
-        if (selectedSwimmer && selectedSwimmer !== 'ALL') {
+        if (selectedSwimmer === 'NONE') {
+            bannerContainer.innerHTML = `
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 2rem 1.5rem; text-align: center; margin-bottom: 1.25rem;">
+                    <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🏊‍♀️</div>
+                    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Swimmer Profile & Performance Portal</h3>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.5;">
+                        Please select a swimmer from the <strong>Choose a Swimmer...</strong> dropdown above to view personal bests, Somerset County QTs, and Swim England progression graphs.
+                    </p>
+                </div>
+            `;
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:2.5rem;">Please select a swimmer from the dropdown above to view records.</td></tr>';
+            return;
+        } else if (selectedSwimmer && selectedSwimmer !== 'ALL' && selectedSwimmer !== 'NONE') {
             const cInfo = getCountyInfoForSwimmer(selectedSwimmer);
             if (cInfo && cInfo.qualifiedCount > 0) {
                 bannerContainer.innerHTML = `
@@ -406,13 +469,17 @@ function renderSwimmersDashboard(data) {
             ? `<span style="background:rgba(16,185,129,0.15); color:var(--accent-emerald); border:1px solid var(--accent-emerald); padding:0.15rem 0.5rem; border-radius:4px; font-weight:700; font-size:0.75rem;">🏆 Qualified</span>`
             : (cStatus === 'SLOWER' ? `<span style="color:var(--text-muted); font-size:0.75rem;">Slower</span>` : '-');
 
+        const pbTag = r.isPB 
+            ? `<span style="background:rgba(245,158,11,0.2); color:var(--accent-amber); border:1px solid var(--accent-amber); font-size:0.65rem; padding:0.08rem 0.35rem; border-radius:4px; margin-left:0.3rem; font-weight:800;">⭐ PB</span>`
+            : '';
+
         return `
             <tr>
                 <td>${swimmerLink}</td>
                 <td style="font-family:monospace;">${seLink}</td>
                 <td style="font-weight:600;">${r.event || '-'}</td>
                 <td>${courseBadge}</td>
-                <td style="font-family:monospace; font-weight:700; color:var(--accent-cyan);">${r.displayTime || '-'}</td>
+                <td style="font-family:monospace; font-weight:700; color:var(--accent-cyan);">${r.displayTime || '-'}${pbTag}</td>
                 <td style="font-family:monospace; color:var(--text-muted);">${r.convertedTime || '-'}</td>
                 <td>${waPoints}</td>
                 <td style="color:var(--text-muted);">${dateStr}</td>
@@ -517,22 +584,25 @@ function closeSwimmerModal() {
 }
 
 function filterSwimmers() {
-    const q = (document.getElementById('swimmers-search')?.value || '').toLowerCase().trim();
     const swimmerSelect = document.getElementById('swimmers-name-select');
-    const swimmerName = swimmerSelect?.value || 'ALL';
+    const swimmerName = swimmerSelect?.value || 'NONE';
 
-    // Restrict Event options to only the events logged for the chosen swimmer
+    if (swimmerName === 'NONE') {
+        renderSwimmersDashboard([]);
+        return;
+    }
+
     updateEventOptions(swimmerName);
 
+    const modeVal = document.getElementById('swimmers-mode-select')?.value || 'PB';
     const eventVal = document.getElementById('swimmers-event-select')?.value || 'ALL';
     const courseVal = document.getElementById('swimmers-course-select')?.value || 'ALL';
     const countyVal = document.getElementById('swimmers-county-select')?.value || 'ALL';
     const timeframeVal = document.getElementById('swimmers-timeframe-select')?.value || 'ALL';
 
-    // Calculate timeframe cutoff date
     let cutoffDate = null;
     let seasonYear = null;
-    const now = new Date(); // Current date e.g. Aug 2026
+    const now = new Date();
 
     if (timeframeVal === '12M') {
         cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
@@ -542,7 +612,7 @@ function filterSwimmers() {
         seasonYear = 2026;
     }
 
-    const filtered = RAW_SWIMMERS_DATA.filter(r => {
+    let filtered = RAW_SWIMMERS_DATA.filter(r => {
         const matchesName = swimmerName === 'ALL' || (r.swimmerName || '') === swimmerName;
         const matchesEvent = eventVal === 'ALL' || (r.event || '') === eventVal;
         const matchesCourse = courseVal === 'ALL' || getCourse(r) === courseVal;
@@ -559,13 +629,15 @@ function filterSwimmers() {
                 matchesTimeframe = false;
             }
         }
-        
-        const textSearch = [r.swimmerName, r.event, r.meetName, r.venue, r.seNumber, r.licence]
-            .filter(Boolean).join(' ').toLowerCase();
-        const matchesQ = !q || textSearch.includes(q);
 
-        return matchesName && matchesEvent && matchesCourse && matchesCounty && matchesTimeframe && matchesQ;
+        return matchesName && matchesEvent && matchesCourse && matchesCounty && matchesTimeframe;
     });
+
+    if (modeVal === 'PB') {
+        filtered = extractFastestPBs(filtered);
+    }
+
+    sortSwimmerRecords(filtered, swimmerName === 'ALL');
 
     renderSwimmersDashboard(filtered);
 }
@@ -953,6 +1025,8 @@ function filterCalendar() {
 // 10. CLUB NOTICES & ANNOUNCEMENTS MODULE
 let NOTICES_DATA = [];
 
+const GOOGLE_DOC_NOTICES_URL = 'https://docs.google.com/document/d/162h7jE0QUw0hVjhIOxveD9fqOItu9tVwBC5eBA70iyA/export?format=txt';
+
 const DEFAULT_NOTICES = [
     {
         title: "Somerset County Championships 2026 Entries",
@@ -976,6 +1050,55 @@ const DEFAULT_NOTICES = [
     }
 ];
 
+function parseGoogleDocNotices(rawText) {
+    if (!rawText) return [];
+    const cleanText = rawText.replace(/\uFEFF/g, '').trim();
+    const blocks = cleanText.split(/(?=\bPRIORITY\s*:)/i).filter(b => b.trim());
+    return blocks.map(block => {
+        const lines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const notice = {};
+        lines.forEach(line => {
+            const colonIdx = line.indexOf(':');
+            if (colonIdx !== -1) {
+                const key = line.substring(0, colonIdx).trim().toUpperCase();
+                const val = line.substring(colonIdx + 1).trim();
+                if (key === 'PRIORITY') notice.priority = (val.toLowerCase().includes('urg') ? 'Urgent' : 'Info');
+                else if (key === 'TITLE') notice.title = val;
+                else if (key === 'DATE' || key === 'EVENTDATE') notice.date = val;
+                else if (key === 'SUMMARY') notice.summary = val;
+                else if (key === 'ENTRY' || key === 'CONTENT' || key === 'DETAILS') notice.content = val;
+            }
+        });
+        if (notice.title) {
+            if (!notice.priority) notice.priority = 'Info';
+            if (!notice.summary) notice.summary = notice.content || notice.title;
+            if (!notice.content) notice.content = notice.summary;
+            return notice;
+        }
+        return null;
+    }).filter(Boolean);
+}
+
+async function loadGoogleDocNotices() {
+    try {
+        const response = await fetch(GOOGLE_DOC_NOTICES_URL + '&t=' + Date.now());
+        if (response.ok) {
+            const text = await response.text();
+            const parsed = parseGoogleDocNotices(text);
+            if (parsed && parsed.length > 0) {
+                NOTICES_DATA = parsed;
+                const noticesBadge = document.getElementById('overview-notices-badge');
+                if (noticesBadge) {
+                    noticesBadge.innerText = `${NOTICES_DATA.length} Active Notice${NOTICES_DATA.length === 1 ? '' : 's'}`;
+                }
+                renderTopAnnouncementBanner();
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch live Google Doc notices, falling back to local dataset:", err);
+    }
+}
+
 function renderClubNotices() {
     const rawNotices = getDataset(window.MASTER_DASHBOARD_DATA || {}, ["Notices", "Club Notices", "Announcements", "Club News", "News"]);
     NOTICES_DATA = (rawNotices && rawNotices.length) ? rawNotices : DEFAULT_NOTICES;
@@ -986,6 +1109,7 @@ function renderClubNotices() {
     }
 
     renderTopAnnouncementBanner();
+    loadGoogleDocNotices();
 }
 
 function renderTopAnnouncementBanner() {
@@ -1089,6 +1213,57 @@ function openNoticesModal() {
 
 function closeNoticesModal() {
     document.getElementById('notices-modal')?.classList.add('hidden');
+}
+
+const GOOGLE_SHEET_SQUAD_CSV_URL = 'https://docs.google.com/spreadsheets/d/1J29UMv1JGfz0cemI3sMgCOierIhe8wM0Kik3p5j9ork/export?format=csv&gid=381588361';
+
+function parseCsvToObjects(csvText) {
+    if (!csvText) return [];
+    const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length <= 1) return [];
+    
+    let headerIdx = 0;
+    for (let i = 0; i < lines.length; i++) {
+        const parts = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+        if (parts.filter(Boolean).length > 2 && !parts.some(p => p.toLowerCase().includes('weston sc'))) {
+            headerIdx = i;
+            break;
+        }
+    }
+    
+    const headers = lines[headerIdx].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+    const dataObjects = [];
+    
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+        const rowObj = {};
+        headers.forEach((h, idx) => {
+            if (h) rowObj[h] = cols[idx] || '';
+        });
+        if (Object.values(rowObj).some(Boolean)) {
+            dataObjects.push(rowObj);
+        }
+    }
+    return dataObjects;
+}
+
+async function loadLiveSquadMovements() {
+    try {
+        const response = await fetch(GOOGLE_SHEET_SQUAD_CSV_URL + '&t=' + Date.now());
+        if (response.ok) {
+            const csvText = await response.text();
+            const parsed = parseCsvToObjects(csvText);
+            if (parsed && parsed.length > 0) {
+                SQUAD_LIST_DATA = parsed;
+                if (document.getElementById('squad-grid')) renderSquadList();
+                if (document.querySelector('#swimmers-table tbody')) {
+                    populateSwimmersDropdowns(RAW_SWIMMERS_DATA);
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Could not load live Google Sheet Squad Movements, using local dataset fallback:", e);
+    }
 }
 
 // Global functions for inline HTML events

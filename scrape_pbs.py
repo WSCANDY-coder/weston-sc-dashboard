@@ -31,6 +31,12 @@ SRC_RAW_JS = os.path.join(BASE_DIR, 'src', 'raw_data.js')
 V1_RAW_JS = os.path.join(BASE_DIR, 'V1 code base', 'raw_data.js')
 CSV_BACKUP = os.path.join(BASE_DIR, 'data', 'raw_data.csv')
 
+# Live Google Sheet published CSV for Sept_Movements / Squad Movements
+GOOGLE_SHEET_SQUAD_CSV = 'https://docs.google.com/spreadsheets/d/1J29UMv1JGfz0cemI3sMgCOierIhe8wM0Kik3p5j9ork/export?format=csv&gid=381588361'
+
+# Live Google Sheet published CSV for Master SE List (Name, SE Number)
+GOOGLE_SHEET_MASTER_SE_CSV = 'https://docs.google.com/spreadsheets/d/1WbhAEeAb-rxnEs_r9Cr4BJqM5eF9w_cz-Hp-lgKRkSk/export?format=csv'
+
 # SSL context for HTTPS requests
 SSL_CTX = ssl._create_unverified_context()
 
@@ -121,11 +127,73 @@ def parse_time(time_str):
         pass
     return clean, None
 
+def fetch_live_google_sheet_squad_names():
+    """Fetch active swimmer names from the published Google Sheet CSV for Squad Movements."""
+    if not GOOGLE_SHEET_SQUAD_CSV:
+        return set()
+    try:
+        req = urllib.request.Request(GOOGLE_SHEET_SQUAD_CSV, headers=HEADERS)
+        with urllib.request.urlopen(req, context=SSL_CTX, timeout=15) as resp:
+            content = resp.read().decode('utf-8', errors='ignore')
+        lines = [l for l in content.splitlines() if l.strip()]
+        reader = csv.reader(lines)
+        rows = list(reader)
+        if not rows:
+            return set()
+        
+        header_idx = 0
+        for i, r in enumerate(rows):
+            if len([c for c in r if c.strip()]) > 2 and not any('weston sc' in c.lower() for c in r):
+                header_idx = i
+                break
+                
+        active_names = set()
+        for row in rows[header_idx+1:]:
+            for cell in row:
+                val = cell.strip()
+                if val and not any(k in val.lower() for k in ['squad', 'sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'am', 'pm', 'session']):
+                    active_names.add(val)
+        return active_names
+    except Exception as e:
+        print(f"Warning fetching live Google Sheet Squad CSV: {e}")
+        return set()
+
+def fetch_live_master_se_list():
+    """Fetch all club swimmers and SE numbers from published Master SE List Google Sheet CSV."""
+    if not GOOGLE_SHEET_MASTER_SE_CSV:
+        return {}
+    try:
+        req = urllib.request.Request(GOOGLE_SHEET_MASTER_SE_CSV, headers=HEADERS)
+        with urllib.request.urlopen(req, context=SSL_CTX, timeout=15) as resp:
+            content = resp.read().decode('utf-8', errors='ignore')
+        reader = csv.reader([l for l in content.splitlines() if l.strip()])
+        rows = list(reader)
+        if not rows:
+            return {}
+        
+        master_map = {}
+        for r in rows[1:]:
+            if len(r) >= 2:
+                name = r[0].strip()
+                se_str = r[1].strip()
+                if name and se_str.isdigit():
+                    master_map[int(se_str)] = name
+        return master_map
+    except Exception as e:
+        print(f"Warning fetching live Master SE List Google Sheet CSV: {e}")
+        return {}
+
 def load_roster():
-    """Load swimmer roster (SE number -> Name mapping)."""
-    swimmers = {}
+    """Load swimmer roster (SE number -> Name mapping) and filter by active Google Sheet squad roster."""
+    master_swimmers = {}
+
+    # 1. Fetch live Master SE List Google Sheet CSV
+    live_master_se = fetch_live_master_se_list()
+    if live_master_se:
+        print(f"Loaded {len(live_master_se)} swimmers from live Master SE List Google Sheet.")
+        master_swimmers.update(live_master_se)
     
-    # 1. Try reading scripts/roster.json if available
+    # 2. Merge with scripts/roster.json as fallback
     if os.path.exists(ROSTER_PATH):
         try:
             with open(ROSTER_PATH, 'r', encoding='utf-8') as f:
@@ -133,37 +201,60 @@ def load_roster():
                 for item in roster_data:
                     se = item.get('seNumber')
                     name = item.get('swimmerName')
-                    if se and name:
-                        swimmers[int(se)] = name
-            if swimmers:
-                print(f"Loaded {len(swimmers)} swimmers from roster.json")
-                return swimmers
+                    if se and name and int(se) not in master_swimmers:
+                        master_swimmers[int(se)] = name.strip()
         except Exception as e:
             print(f"Warning loading roster.json: {e}")
 
-    # 2. Extract from existing raw_data.js
-    for js_path in [PRIMARY_RAW_JS, SRC_RAW_JS]:
-        if os.path.exists(js_path):
-            try:
-                with open(js_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                match = re.search(r'const\s+RAW_DATA\s*=\s*(\[[\s\S]*\]);', content)
-                if match:
-                    records = json.loads(match.group(1))
-                    for r in records:
-                        se = r.get('seNumber')
-                        name = r.get('swimmerName')
-                        if se and name:
-                            swimmers[int(se)] = name.strip()
-                if swimmers:
-                    print(f"Extracted {len(swimmers)} swimmers from {os.path.basename(js_path)}")
-                    # Save roster for future reference
-                    save_roster(swimmers)
-                    return swimmers
-            except Exception as e:
-                print(f"Warning reading {js_path}: {e}")
+    # 3. Extract from existing raw_data.js if missing
+    if not master_swimmers:
+        for js_path in [PRIMARY_RAW_JS, SRC_RAW_JS]:
+            if os.path.exists(js_path):
+                try:
+                    with open(js_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    match = re.search(r'const\s+RAW_DATA\s*=\s*(\[[\s\S]*\]);', content)
+                    if match:
+                        records = json.loads(match.group(1))
+                        for r in records:
+                            se = r.get('seNumber')
+                            name = r.get('swimmerName')
+                            if se and name and int(se) not in master_swimmers:
+                                master_swimmers[int(se)] = name.strip()
+                except Exception as e:
+                    print(f"Warning reading {js_path}: {e}")
 
-    return swimmers
+    # Save updated master roster mapping
+    if master_swimmers:
+        save_roster(master_swimmers)
+
+    # 4. Check Live Google Sheet Squad Movements for active names
+    active_squad_names = fetch_live_google_sheet_squad_names()
+    if active_squad_names:
+        print(f"Loaded {len(active_squad_names)} active swimmers from live Google Sheet Sept_Movements.")
+        name_to_se = {name.lower(): se for se, name in master_swimmers.items()}
+        filtered_swimmers = {}
+        for squad_name in active_squad_names:
+            clean_name_key = squad_name.lower()
+            if clean_name_key in name_to_se:
+                se_num = name_to_se[clean_name_key]
+                filtered_swimmers[se_num] = master_swimmers[se_num]
+            else:
+                # Try partial match (e.g. Maxi Vincent -> Maximillian Vincent)
+                partial_match = None
+                for master_key, se_num in name_to_se.items():
+                    if clean_name_key in master_key or master_key in clean_name_key:
+                        partial_match = se_num
+                        break
+                if partial_match:
+                    filtered_swimmers[partial_match] = master_swimmers[partial_match]
+                else:
+                    print(f"ℹ️ Active swimmer '{squad_name}' in Google Sheet needs SE number in Master SE List Google Sheet.")
+        
+        if filtered_swimmers:
+            return filtered_swimmers
+
+    return master_swimmers
 
 def save_roster(swimmers):
     """Save roster to scripts/roster.json."""
