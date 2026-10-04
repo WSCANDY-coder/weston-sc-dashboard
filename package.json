@@ -1,0 +1,18 @@
+{
+  "name": "weston-sc-dashboard",
+  "version": "5.0.0",
+  "description": "Weston-super-Mare SC Performance Dashboard & Swimmers Hub",
+  "scripts": {
+    "update-data": "python update.py",
+    "scrape": "python scripts/scrape_pbs.py",
+    "start": "python -m http.server 8082 --directory weston-sc-swimmers"
+  },
+  "keywords": [
+    "swimming",
+    "swim-england",
+    "dashboard",
+    "weston-sc"
+  ],
+  "author": "Weston SC",
+  "license": "MIT"
+}

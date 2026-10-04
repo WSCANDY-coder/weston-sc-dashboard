@@ -1,9 +1,10 @@
 const MASTER_DASHBOARD_DATA = {
   "_metadata": {
-    "lastUpdated": "2026-08-21T21:16:13.411Z",
+    "lastUpdated": "2026-09-02T18:41:41.166Z",
     "version": "2.1.0",
     "sourceSheets": [
       "Devlop 26",
+      "Relays Sept 19_Counts",
       "BSG L2",
       "Sept_Movements",
       "Selection Report",
@@ -1013,6 +1014,326 @@ const MASTER_DASHBOARD_DATA = {
       "Event 11": "100 Butterfly",
       "Event 12": "100 Individual Medley (Too Fast)",
       "Event 13": "200 Individual Medley (Slower)"
+    }
+  ],
+  "Relays Sept 19_Counts": [
+    {
+      "Age Bracket Group": "10,11,12",
+      "Boys (Male)": 14,
+      "Girls (Female)": 41,
+      "Total Available": 55
+    },
+    {
+      "Age Bracket Group": "13,14",
+      "Boys (Male)": 29,
+      "Girls (Female)": 58,
+      "Total Available": 87
+    },
+    {
+      "Age Bracket Group": "15 & Under",
+      "Boys (Male)": 0,
+      "Girls (Female)": 8,
+      "Total Available": 8
+    },
+    {
+      "Age Bracket Group": "16+",
+      "Boys (Male)": 8,
+      "Girls (Female)": 25,
+      "Total Available": 33
+    },
+    {
+      "Age Bracket Group": "Overall Total Squad",
+      "Boys (Male)": 51,
+      "Girls (Female)": 132,
+      "Total Available": 183
+    },
+    {
+      "Age Bracket Group": "Lineup Exception Alerts: Relay Events Lacking Complete Rosters (< 4 Swimmers Selected)",
+      "Boys (Male)": "",
+      "Girls (Female)": "",
+      "Total Available": ""
+    },
+    {
+      "Age Bracket Group": "Event #",
+      "Boys (Male)": "Relay Classification Group",
+      "Girls (Female)": "Drafted Count",
+      "Total Available": "Algorithmic Logic Exception Diagnostics"
+    },
+    {
+      "Age Bracket Group": 1,
+      "Boys (Male)": "16+ Boy Medley Relay",
+      "Girls (Female)": "0 / 4 picked",
+      "Total Available": "LOGIC FAILURE: Bracket Cohort Population Zero."
+    },
+    {
+      "Age Bracket Group": 7,
+      "Boys (Male)": "10,11,12 Boy Freestyle Relay",
+      "Girls (Female)": "3 / 4 picked",
+      "Total Available": "POOL DEPTH DEFICIENCY: Missing [Slot 4]. The total available population is less than 4, or remaining cohort members are capped under the maximum 4-relay entry rule."
+    },
+    {
+      "Age Bracket Group": 9,
+      "Boys (Male)": "16+ Mixed Medley Relay",
+      "Girls (Female)": "0 / 4 picked",
+      "Total Available": "LOGIC FAILURE: Bracket Cohort Population Zero."
+    },
+    {
+      "Age Bracket Group": 12,
+      "Boys (Male)": "10,11,12 Boy Medley Relay",
+      "Girls (Female)": "0 / 4 picked",
+      "Total Available": "LOGIC FAILURE: Bracket Cohort Population Zero."
+    },
+    {
+      "Age Bracket Group": 18,
+      "Boys (Male)": "16+ Boy Freestyle Relay",
+      "Girls (Female)": "1 / 4 picked",
+      "Total Available": "POOL DEPTH DEFICIENCY: Missing [Slot 2, Slot 3, Slot 4]. The total available population is less than 4, or remaining cohort members are capped under the maximum 4-relay entry rule."
+    },
+    {
+      "Age Bracket Group": 20,
+      "Boys (Male)": "16+ Mixed Freestyle Relay",
+      "Girls (Female)": "3 / 4 picked",
+      "Total Available": "POOL DEPTH DEFICIENCY: Missing [Slot 2]. The total available population is less than 4, or remaining cohort members are capped under the maximum 4-relay entry rule."
+    },
+    {
+      "Age Bracket Group": "Dynamic Lineup Analysis: Drafted Swimmers & Leg Breakdown",
+      "Boys (Male)": "",
+      "Girls (Female)": "",
+      "Total Available": ""
+    },
+    {
+      "Age Bracket Group": "Selected Swimmer Name",
+      "Boys (Male)": "Total Assigned Relays",
+      "Girls (Female)": "Assigned Relay Breakdown",
+      "Total Available": "Selection Strategy Rationale View"
+    },
+    {
+      "Age Bracket Group": "Jessica Waller",
+      "Boys (Male)": 3,
+      "Girls (Female)": "Event 2 (16+ Girl Medley Relay) | Event 17 (16+ Girl Freestyle Relay) | Event 20 (16+ Mixed Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Siena Blackshaw",
+      "Boys (Male)": 2,
+      "Girls (Female)": "Event 2 (16+ Girl Medley Relay) | Event 17 (16+ Girl Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Rebecca Flack",
+      "Boys (Male)": 1,
+      "Girls (Female)": "Event 2 (16+ Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Jessica Knight",
+      "Boys (Male)": 3,
+      "Girls (Female)": "Event 2 (16+ Girl Medley Relay) | Event 17 (16+ Girl Freestyle Relay) | Event 20 (16+ Mixed Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Freddie Marshall",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 3 (15 & Under Boy Freestyle Relay) | Event 5 (13,14 Boy Medley Relay) | Event 14 (13,14 Boy Freestyle Relay) | Event 16 (15 & Under Boy Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Emil Faradzov",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 3 (15 & Under Boy Freestyle Relay) | Event 7 (10,11,12 Boy Freestyle Relay) | Event 19 (14 & Under Mixed Freestyle Relay) | Event 21 (10/11-12, 13-14, 15/U & 16+ Mixed Freestyle Cannon)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Billy Marshall",
+      "Boys (Male)": 2,
+      "Girls (Female)": "Event 3 (15 & Under Boy Freestyle Relay) | Event 7 (10,11,12 Boy Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Oliver Waller",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 3 (15 & Under Boy Freestyle Relay) | Event 5 (13,14 Boy Medley Relay) | Event 14 (13,14 Boy Freestyle Relay) | Event 16 (15 & Under Boy Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Rosie Livesey",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 4 (15 & Under Girl Freestyle Relay) | Event 8 (10,11,12 Girl Freestyle Relay) | Event 11 (10,11,12 Girl Medley Relay) | Event 19 (14 & Under Mixed Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Lola Tembey Barnard",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 4 (15 & Under Girl Freestyle Relay) | Event 6 (13,14 Girl Medley Relay) | Event 13 (13,14 Girl Freestyle Relay) | Event 19 (14 & Under Mixed Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Sophia Davis",
+      "Boys (Male)": 3,
+      "Girls (Female)": "Event 4 (15 & Under Girl Freestyle Relay) | Event 13 (13,14 Girl Freestyle Relay) | Event 21 (10/11-12, 13-14, 15/U & 16+ Mixed Freestyle Cannon)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Francesca Flack",
+      "Boys (Male)": 3,
+      "Girls (Female)": "Event 4 (15 & Under Girl Freestyle Relay) | Event 15 (15 & Under Girl Medley Relay) | Event 21 (10/11-12, 13-14, 15/U & 16+ Mixed Freestyle Cannon)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Seth Gould",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 5 (13,14 Boy Medley Relay) | Event 10 (14 & Under Mixed Medley Relay) | Event 14 (13,14 Boy Freestyle Relay) | Event 16 (15 & Under Boy Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Austin Hodder",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 5 (13,14 Boy Medley Relay) | Event 10 (14 & Under Mixed Medley Relay) | Event 16 (15 & Under Boy Medley Relay) | Event 19 (14 & Under Mixed Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Felicity Thomas",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 6 (13,14 Girl Medley Relay) | Event 10 (14 & Under Mixed Medley Relay) | Event 13 (13,14 Girl Freestyle Relay) | Event 15 (15 & Under Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Ava Mitchard",
+      "Boys (Male)": 2,
+      "Girls (Female)": "Event 6 (13,14 Girl Medley Relay) | Event 15 (15 & Under Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Emily Butcher",
+      "Boys (Male)": 4,
+      "Girls (Female)": "Event 6 (13,14 Girl Medley Relay) | Event 10 (14 & Under Mixed Medley Relay) | Event 13 (13,14 Girl Freestyle Relay) | Event 15 (15 & Under Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Reuben Le",
+      "Boys (Male)": 1,
+      "Girls (Female)": "Event 7 (10,11,12 Boy Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Eva Allen",
+      "Boys (Male)": 2,
+      "Girls (Female)": "Event 8 (10,11,12 Girl Freestyle Relay) | Event 11 (10,11,12 Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Bethany Thomas",
+      "Boys (Male)": 2,
+      "Girls (Female)": "Event 8 (10,11,12 Girl Freestyle Relay) | Event 11 (10,11,12 Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Elana Brayton",
+      "Boys (Male)": 1,
+      "Girls (Female)": "Event 8 (10,11,12 Girl Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Alexie Tembey-Barnard",
+      "Boys (Male)": 1,
+      "Girls (Female)": "Event 11 (10,11,12 Girl Medley Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Luca Watson",
+      "Boys (Male)": 1,
+      "Girls (Female)": "Event 14 (13,14 Boy Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Annabel Livesey",
+      "Boys (Male)": 1,
+      "Girls (Female)": "Event 17 (16+ Girl Freestyle Relay)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Zac Oates",
+      "Boys (Male)": 3,
+      "Girls (Female)": "Event 18 (16+ Boy Freestyle Relay) | Event 20 (16+ Mixed Freestyle Relay) | Event 21 (10/11-12, 13-14, 15/U & 16+ Mixed Freestyle Cannon)",
+      "Total Available": "Drafted due to fast seed times. Max limit rule checked (< 5)."
+    },
+    {
+      "Age Bracket Group": "Pipeline Report: Eligible Swimmers Not Selected in Any Relay Lineup",
+      "Boys (Male)": "",
+      "Girls (Female)": "",
+      "Total Available": ""
+    },
+    {
+      "Age Bracket Group": "Swimmer Name",
+      "Boys (Male)": "Age Group Bracket",
+      "Girls (Female)": "Gender",
+      "Total Available": "Primary Stroke Entry & Selection Benchmark Analysis View"
+    },
+    {
+      "Age Bracket Group": "Edna Jacobs",
+      "Boys (Male)": "13,14",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 13,14 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Bella Davis",
+      "Boys (Male)": "10,11,12",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 10,11,12 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Cara Hobden",
+      "Boys (Male)": "13,14",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 13,14 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Freya Godfrey",
+      "Boys (Male)": "13,14",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 13,14 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Freya Hoare-Matthews",
+      "Boys (Male)": "10,11,12",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 10,11,12 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Holly Butterfield",
+      "Boys (Male)": "13,14",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 13,14 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Imogen Segal",
+      "Boys (Male)": "13,14",
+      "Girls (Female)": "GIRL",
+      "Total Available": "Available for 13,14 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Oscar Crow",
+      "Boys (Male)": "13,14",
+      "Girls (Female)": "BOY",
+      "Total Available": "Available for 13,14 brackets. Omitted because others hold faster times, or active rotation constraints restricted slots."
+    },
+    {
+      "Age Bracket Group": "Exclusion Report: Invalid Swimmer Profile Breaks (Cannot Draw)",
+      "Boys (Male)": "",
+      "Girls (Female)": "",
+      "Total Available": ""
+    },
+    {
+      "Age Bracket Group": "Swimmer Name",
+      "Boys (Male)": "Logged Age",
+      "Girls (Female)": "Logged Gender",
+      "Total Available": "Reason for Omission / Action Required"
+    },
+    {
+      "Age Bracket Group": "No profile errors discovered.",
+      "Boys (Male)": "-",
+      "Girls (Female)": "-",
+      "Total Available": "-"
     }
   ],
   "BSG L2": [
@@ -4453,7 +4774,7 @@ const MASTER_DASHBOARD_DATA = {
     {
       "Date": "2026-10-10",
       "Event": "Arena League",
-      "Where": "TBC"
+      "Where": "Hutton Moor"
     },
     {
       "Date": "2026-10-24",
@@ -4461,9 +4782,9 @@ const MASTER_DASHBOARD_DATA = {
       "Where": "Hengrove"
     },
     {
-      "Date": "2026-10-14",
+      "Date": "2026-11-14",
       "Event": "Arena League",
-      "Where": "TBC"
+      "Where": "TBA"
     },
     {
       "Date": "2026-11-21",
@@ -4471,9 +4792,9 @@ const MASTER_DASHBOARD_DATA = {
       "Where": "Hengrove"
     },
     {
-      "Date": "2026-12-14",
+      "Date": "2026-12-05",
       "Event": "Arena League",
-      "Where": "TBC"
+      "Where": "TBA"
     },
     {
       "Date": "Mid Dec",
