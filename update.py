@@ -20,7 +20,9 @@ if sys.platform == 'win32':
         pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCRAPER_PATH = os.path.join(BASE_DIR, 'scripts', 'scrape_pbs.py')
+SCRAPER_PATH = os.path.join(BASE_DIR, 'scrape_pbs.py')
+if not os.path.exists(SCRAPER_PATH):
+    SCRAPER_PATH = os.path.join(BASE_DIR, 'scripts', 'scrape_pbs.py')
 PRIMARY_RAW_JS = os.path.join(BASE_DIR, 'raw_data.js')
 
 def main():
