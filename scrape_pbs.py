@@ -24,7 +24,8 @@ if sys.platform == 'win32':
         pass
 
 # 1. SETUP PATHS
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(current_dir) if os.path.basename(current_dir) == 'scripts' else current_dir
 ROSTER_PATH = os.path.join(BASE_DIR, 'scripts', 'roster.json')
 ROOT_ROSTER_PATH = os.path.join(BASE_DIR, 'roster.json')
 ROOT_RAW_JS = os.path.join(BASE_DIR, 'raw_data.js')
