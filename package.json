@@ -5,7 +5,9 @@
   "scripts": {
     "update-data": "python update.py",
     "scrape": "python scripts/scrape_pbs.py",
-    "start": "python -m http.server 8082 --directory weston-sc-swimmers"
+    "start": "python -m http.server 3000 --directory weston-sc-swimmers",
+    "start:3000": "python -m http.server 3000 --directory weston-sc-swimmers",
+    "start:8082": "python -m http.server 8082 --directory weston-sc-swimmers"
   },
   "keywords": [
     "swimming",

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arena Race Manager - Predictive Scoring Engine | Weston SC</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PDF.js Engine for Direct PDF Drag-and-Drop Ingestion -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#0f172a',
+              navyCard: '#1e293b',
+              navyDark: '#0b1120',
+              border: '#334155',
+              cyan: '#06b6d4',
+              cyanLight: '#38bdf8',
+              blue: '#2563eb',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .pulse-slow {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .6; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-xl">
+            ⚡
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-lg sm:text-xl tracking-tight text-white">ARENA RACE MANAGER</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                Predictive Scoring Engine
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              National Arena Swimming League &bull; Division 1 Gala 1 Projection Model
+            </p>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="flex items-center space-x-2">
+          <button onclick="window.roundDrawBuilder ? window.roundDrawBuilder.open() : (window.appController && window.appController.openRoundBuilder())" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold transition" title="Change or customize competing clubs & lane draw">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            <span class="font-bold">📋 Round Draw Builder</span>
+          </button>
+          <a href="components/TacticalDashboardView.html" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-semibold transition">
+            <span>🎯 Tactical Optimizer &rarr;</span>
+          </a>
+          <button onclick="window.importPreviewModal ? window.importPreviewModal.open(1) : window.appController.openDataModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span class="hidden md:inline">Data Ingestion</span>
+          </button>
+          <a href="/" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition">
+            <span>&larr; Arena Race Manager</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="score-prediction-app" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
+
+    <!-- KPI SUMMARY CARDS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Projected Winner -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span class="font-semibold uppercase tracking-wider">Projected Champion</span>
+          <span class="text-amber-400 text-base">🏆</span>
+        </div>
+        <div id="kpi-projected-winner" class="text-xl sm:text-2xl font-black text-amber-300 truncate">Truro City</div>
+        <div class="flex items-center justify-between mt-1 text-xs">
+          <span id="kpi-winner-score" class="font-mono text-slate-300">408 pts</span>
+          <span id="kpi-winner-prob" class="text-emerald-400 font-semibold">100% Prob</span>
+        </div>
+      </div>
+
+      <!-- Weston S Mare Status -->
+      <div class="bg-slate-900 border border-cyan-500/30 rounded-xl p-4 shadow-sm relative overflow-hidden bg-gradient-to-b from-cyan-950/20 to-slate-900">
+        <div class="flex items-center justify-between text-xs text-cyan-400 mb-1">
+          <span class="font-semibold uppercase tracking-wider">Weston S Mare</span>
+          <span class="text-cyan-400 text-base">🏊</span>
+        </div>
+        <div class="flex items-baseline space-x-2">
+          <span id="kpi-weston-finish" class="text-xl sm:text-2xl font-black text-white">#2</span>
+          <span id="kpi-weston-score" class="text-sm font-mono font-bold text-cyan-300">357 pts</span>
+        </div>
+        <div class="mt-1 text-xs text-slate-400 truncate">
+          Win Prob: <span id="kpi-weston-win-prob" class="text-cyan-400 font-semibold">0% (Top 3: 100%)</span>
+        </div>
+      </div>
+
+      <!-- Swing Events Detected -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span class="font-semibold uppercase tracking-wider">Swing Events</span>
+          <span class="text-amber-400 text-base">⚡</span>
+        </div>
+        <div id="kpi-swing-count" class="text-xl sm:text-2xl font-black text-amber-400">16</div>
+        <div class="mt-1 text-xs text-slate-400">
+          Gaps &lt; 0.30s (2+ pt swing)
+        </div>
+      </div>
+
+      <!-- Total Events & Standard -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span class="font-semibold uppercase tracking-wider">Gala Events</span>
+          <span class="text-slate-400 text-base">📊</span>
+        </div>
+        <div id="kpi-total-events" class="text-xl sm:text-2xl font-black text-white">51</div>
+        <div class="mt-1 text-xs text-slate-400">
+          Standard 8-Lane Countback
+        </div>
+      </div>
+    </div>
+
+    <!-- ENGINE CONTROLS & SIMULATION MODES -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Mode Switcher -->
+        <div class="flex items-center space-x-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+          <button id="mode-deterministic-btn" class="px-4 py-2 rounded-lg text-xs font-bold transition shadow-sm bg-cyan-500 text-slate-950">
+            Deterministic Projection
+          </button>
+          <button id="mode-monte-carlo-btn" class="px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white bg-slate-800">
+            Monte Carlo (Stochastic)
+          </button>
+        </div>
+
+        <!-- Quick Data Presets -->
+        <div class="flex items-center flex-wrap gap-2 text-xs">
+          <button onclick="window.appController.loadFullBaselineData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold transition" title="Authentic Round 1 Seed Times">
+            ⚡ Full Round 1 Baseline
+          </button>
+          <button onclick="window.appController.loadMillfieldData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-semibold transition" title="Demonstrates automatic median imputation for missing clubs">
+            📄 Millfield Scrape (Median Imputation)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Monte Carlo Parameter Sliders (Hidden in Deterministic mode) -->
+      <div id="mc-settings-panel" class="hidden pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+        <!-- Variance Slider -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-400 font-medium">Realistic Variance (&sigma;):</span>
+            <span id="variance-val-text" class="text-cyan-400 font-mono font-bold">1.2%</span>
+          </div>
+          <input id="variance-slider" type="range" min="0.0" max="2.5" step="0.1" value="1.2" 
+                 class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>0.0% (Exact Seed)</span>
+            <span>1.2% (Standard)</span>
+            <span>2.5% (High Volatility)</span>
+          </div>
+        </div>
+
+        <!-- Iterations Selector -->
+        <div class="space-y-1.5">
+          <label class="text-xs text-slate-400 font-medium block">Simulation Iterations:</label>
+          <select id="iterations-select" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 font-mono">
+            <option value="200">200 Iterations (Fast)</option>
+            <option value="500" selected>500 Iterations (Recommended)</option>
+            <option value="1000">1,000 Iterations (High Precision)</option>
+            <option value="2000">2,000 Iterations (Deep Model)</option>
+          </select>
+        </div>
+
+        <!-- Run Monte Carlo Button -->
+        <div class="pt-2 md:pt-4">
+          <button id="run-simulation-btn" class="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 transition flex items-center justify-center">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Run Monte Carlo (500)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN TAB NAVIGATION -->
+    <div class="border-b border-slate-800">
+      <nav class="flex space-x-6 overflow-x-auto text-xs font-semibold" aria-label="Tabs">
+        <button class="prediction-tab-btn py-3 px-1 border-b-2 border-cyan-400 text-cyan-400 flex items-center space-x-2 whitespace-nowrap" data-tab="leaderboard">
+          <span>🏆 Projected Leaderboard</span>
+        </button>
+        <button class="prediction-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="checkpoints">
+          <span>📍 Milestone Checkpoints</span>
+        </button>
+        <button class="prediction-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="swing">
+          <span>⚡ Swing Events Radar</span>
+        </button>
+        <button class="prediction-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="h2h">
+          <span>🥊 Head-to-Head Matrix</span>
+        </button>
+        <button class="prediction-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="relay">
+          <span>⏱️ Relay Split Estimator</span>
+        </button>
+        <button class="prediction-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="events">
+          <span>📋 All 51 Events & What-If</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- TAB PANELS -->
+
+    <!-- 1. LEADERBOARD PANEL -->
+    <div class="prediction-tab-panel space-y-4" data-panel="leaderboard">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-base text-white">Projected Final Standings (8-Lane Scoring)</h3>
+            <p class="text-xs text-slate-400">Total cumulative points after 51 events with countback tiebreaking.</p>
+          </div>
+          <div class="text-xs text-slate-400 font-mono">
+            Max Potential: 408 pts
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950/70 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4 text-center w-16">Rank</th>
+                <th class="py-3 px-4">Club Name & Lane</th>
+                <th class="py-3 px-4 text-right">Projected Points</th>
+                <th class="py-3 px-4 min-w-[240px]">Cumulative Points Bar & Finish Probabilities</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. CHECKPOINTS PANEL -->
+    <div class="prediction-tab-panel space-y-4 hidden" data-panel="checkpoints">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-slate-800">
+          <h3 class="font-bold text-base text-white">Milestone Checkpoints Progression</h3>
+          <p class="text-xs text-slate-400">Cumulative club point totals tracked at standard Arena League checkpoints: Events 10, 18, 26, 34, 42, 51.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">Club</th>
+                <th class="py-3 px-3 text-center">E10 (Back)</th>
+                <th class="py-3 px-3 text-center">E18 (Fly)</th>
+                <th class="py-3 px-3 text-center">E26 (Breast)</th>
+                <th class="py-3 px-3 text-center">E34 (Free)</th>
+                <th class="py-3 px-3 text-center">E42 (Medley R.)</th>
+                <th class="py-3 px-3 text-center">E51 (Final)</th>
+              </tr>
+            </thead>
+            <tbody id="checkpoints-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SWING EVENTS PANEL -->
+    <div class="prediction-tab-panel space-y-4 hidden" data-panel="swing">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 class="font-bold text-lg text-white">Swing Events Radar</h3>
+          <p class="text-xs text-slate-400">Races where the top competitors are separated by &lt; 0.30s, resulting in a 2+ point volatility swing.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <label class="text-xs text-slate-400">Filter View:</label>
+          <select id="swing-filter-select" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400">
+            <option value="ALL">All Swing Races</option>
+            <option value="WESTON">Weston SC Battles Only</option>
+            <option value="RELAY">Relay Swings Only</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="swing-events-list" class="space-y-3">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- 4. HEAD-TO-HEAD MATRIX PANEL -->
+    <div class="prediction-tab-panel space-y-4 hidden" data-panel="h2h">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-base text-white">Head-to-Head Club Comparison Matrix</h3>
+            <p class="text-xs text-slate-400">Select two clubs to analyze race-by-race point differentials and tactical battles.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <select id="h2h-club-a-select" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-cyan-300 font-bold outline-none focus:border-cyan-400">
+              <!-- Populated dynamically -->
+            </select>
+            <span class="text-slate-500 text-xs font-bold">VS</span>
+            <select id="h2h-club-b-select" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-amber-300 font-bold outline-none focus:border-cyan-400">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Scoreboard Summary Banner -->
+        <div id="h2h-scoreboard">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Filter bar -->
+        <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
+          <span class="text-slate-400">Detailed Event Matrix:</span>
+          <select id="h2h-filter-select" class="px-2.5 py-1 rounded bg-slate-950 border border-slate-700 text-xs text-slate-300 outline-none">
+            <option value="ALL">Show All 51 Events</option>
+            <option value="ADV_A">Club 1 Advantage Only</option>
+            <option value="ADV_B">Club 2 Advantage Only</option>
+            <option value="SWING">Swing Battles Only (&le; 0.30s)</option>
+          </select>
+        </div>
+
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider sticky top-0 border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Ev</th>
+                <th class="py-2.5 px-3">Event Name</th>
+                <th class="py-2.5 px-3 text-center">Club 1</th>
+                <th class="py-2.5 px-3 text-center">Club 2</th>
+                <th class="py-2.5 px-3 text-center">&Delta; Time</th>
+                <th class="py-2.5 px-3 text-center">Advantage</th>
+              </tr>
+            </thead>
+            <tbody id="h2h-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. RELAY SPLIT ESTIMATOR PANEL -->
+    <div class="prediction-tab-panel space-y-4 hidden" data-panel="relay">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-5">
+        <div>
+          <h3 class="font-bold text-base text-white">Relay Split Estimator & Rolling Takeover Bonus</h3>
+          <p class="text-xs text-slate-400">
+            Project team relay times from 4 individual 50m flat times with rolling takeover adjustments (standard -0.60s per exchange).
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Relay Event Selection -->
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">Target Relay Event:</label>
+            <select id="relay-event-select" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Takeover Bonus Slider -->
+          <div class="md:col-span-2 space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-semibold">Takeover Bonus per Exchange:</span>
+              <span id="relay-takeover-bonus-val" class="font-mono text-cyan-400 font-bold">-0.60s</span>
+            </div>
+            <input id="relay-takeover-bonus" type="range" min="0.40" max="0.90" step="0.05" value="0.60" 
+                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" />
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span>-0.40s (Cautious)</span>
+              <span>-0.60s (Standard Club)</span>
+              <span>-0.90s (Elite Reaction)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Swimmer Flat 50m Times -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300 block">Individual Swimmer Flat 50m Times (ss.ms):</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-1">Leg 1 (Back / 1st):</span>
+              <input id="relay-leg-1" type="text" value="28.50" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-center text-sm outline-none focus:border-cyan-400" />
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-1">Leg 2 (Breast / 2nd):</span>
+              <input id="relay-leg-2" type="text" value="31.20" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-center text-sm outline-none focus:border-cyan-400" />
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-1">Leg 3 (Fly / 3rd):</span>
+              <input id="relay-leg-3" type="text" value="26.80" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-center text-sm outline-none focus:border-cyan-400" />
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-1">Leg 4 (Free / Anchor):</span>
+              <input id="relay-leg-4" type="text" value="24.50" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-center text-sm outline-none focus:border-cyan-400" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Projected Result Display -->
+        <div id="relay-calc-result-card" class="pt-2">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Opponent Relay Field Comparison -->
+        <div class="space-y-2 pt-2 border-t border-slate-800">
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Simulated Relay Finish vs Division 1 Field</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-3 text-center w-14">Rank</th>
+                  <th class="py-2 px-3">Club</th>
+                  <th class="py-2 px-3 text-right">Projected Time</th>
+                  <th class="py-2 px-3 text-right">Points</th>
+                </tr>
+              </thead>
+              <tbody id="relay-field-table-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 6. ALL 51 EVENTS & WHAT-IF SCENARIOS PANEL -->
+    <div class="prediction-tab-panel space-y-4 hidden" data-panel="events">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="font-bold text-lg text-white">All 51 Events & What-If Scenario Editor</h3>
+          <p class="text-xs text-slate-400">Click any event to modify swimmer seed times, test coach tactics, or toggle disqualifications.</p>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <input id="events-search-input" type="text" placeholder="Search event or swimmer..." 
+                 class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400 w-48 sm:w-64" />
+          <select id="events-stroke-filter" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400">
+            <option value="ALL">All Strokes</option>
+            <option value="BACK">Backstroke</option>
+            <option value="FLY">Butterfly</option>
+            <option value="BREAST">Breaststroke</option>
+            <option value="FREE">Freestyle</option>
+            <option value="MEDLEY">Individual Medley</option>
+            <option value="RELAY">Relays</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="events-master-list" class="space-y-4">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- DATA INGESTION MODAL -->
+  <div id="prediction-data-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold">📥</span>
+          <div>
+            <h3 class="font-bold text-white text-base">Gala Round Data Ingestion</h3>
+            <p class="text-xs text-slate-400">Paste text extracted from Round 1 results PDF or JSON schema.</p>
+          </div>
+        </div>
+        <button onclick="window.appController.closeDataModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-4 space-y-4 overflow-y-auto flex-grow text-xs">
+        <div class="space-y-1.5">
+          <label class="font-semibold text-slate-300 block">Raw Results Text or JSON:</label>
+          <textarea id="prediction-data-input" rows="8" placeholder="Paste extracted PDF text from Round 1 sheet (e.g. Division-1-Gala-1-Millfield-12-noon.pdf) or JSON format..."
+                    class="w-full p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs focus:border-cyan-400 outline-none"></textarea>
+        </div>
+
+        <div id="data-import-status" class="text-xs text-rose-400 font-medium"></div>
+
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800/80 space-y-2">
+          <h4 class="font-bold text-cyan-400">Automatic Median Imputation Baseline</h4>
+          <p class="text-slate-400 leading-relaxed">
+            If times for newly promoted or opposing clubs in Round 2 (such as Swindon ASC, Bradford on Avon, or Weston S Mare) are missing from Round 1 Gala 1 results, the engine automatically populates with the field's 50th percentile (median) baseline time so simulations never break.
+          </p>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <button onclick="window.appController.loadMillfieldData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-semibold">
+          Load Sample Millfield PDF Text
+        </button>
+        <div class="flex items-center space-x-2">
+          <button onclick="window.appController.closeDataModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+            Cancel
+          </button>
+          <button onclick="window.appController.importCustomData()" class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md shadow-cyan-600/20">
+            Parse & Apply Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT-IF SCENARIO INSPECTOR MODAL -->
+  <div id="scenario-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div id="scenario-modal-content" class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+  <!-- SCRIPT INCLUDES -->
+  <script src="timeUtils.js"></script>
+  <script src="round1Data.js"></script>
+  <script src="predictionEngine.js"></script>
+  <script src="modules/dataSanitizer.js"></script>
+  <script src="modules/storageManager.js"></script>
+  <script src="modules/galaImporter.js"></script>
+  <script src="components/ImportPreviewModal.js"></script>
+  <script src="components/RoundDrawBuilder.js"></script>
+  <script src="ScorePredictionView.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const storage = new StorageManager();
+      window.appController = new ScorePredictionViewController(storage);
+      window.appController.init('score-prediction-app');
+
+      // Initialize RoundDrawBuilder
+      window.roundDrawBuilder = new RoundDrawBuilder(storage, (activeGala) => {
+        window.appController.applyGalaDraw(activeGala);
+      });
+
+      // Synchronize with active draw on load
+      const activeGala = storage.getActiveGalaLineup();
+      if (activeGala && activeGala.competingClubs) {
+        window.appController.applyGalaDraw(activeGala);
+      }
+
+      window.importPreviewModal = new ImportPreviewModal(storage, (receipt) => {
+        const curGala = storage.getActiveGalaLineup();
+        if (curGala) window.appController.applyGalaDraw(curGala);
+      });
+    });
+  </script>
+</body>
+</html>

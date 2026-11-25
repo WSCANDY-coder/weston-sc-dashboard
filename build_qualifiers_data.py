@@ -15,7 +15,8 @@ import json
 import datetime
 import openpyxl
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(current_dir) if os.path.basename(current_dir) == 'scripts' else current_dir
 COUNTY_XLSX = os.path.join(BASE_DIR, 'weston-sc-swimmers', '2026 county Times .xlsx')
 REGIONAL_XLSX = os.path.join(BASE_DIR, 'weston-sc-swimmers', 'South West Regional Qualifying Times 2026.xlsx')
 OUTPUT_JS = os.path.join(BASE_DIR, 'weston-sc-swimmers', 'qualifiers_standards.js')

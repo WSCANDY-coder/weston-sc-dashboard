@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arena Race Manager - Tactical Lineup Optimizer | Weston SC</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PDF.js Engine for Direct PDF Drag-and-Drop Ingestion -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#0f172a',
+              navyCard: '#1e293b',
+              navyDark: '#0b1120',
+              border: '#334155',
+              cyan: '#06b6d4',
+              cyanLight: '#38bdf8',
+              blue: '#2563eb',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+              purple: '#8b5cf6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .pulse-amber {
+      animation: pulseAmber 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulseAmber {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- TOP BRANDING & NAVIGATION HEADER -->
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/20 text-white font-black text-xl">
+            🎯
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-lg sm:text-xl tracking-tight text-white">ARENA RACE MANAGER</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                Tactical Lineup Optimizer
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              Multi-Round Time Registry &bull; Opportunity Finder &bull; Real-Time Swimmer Swapper
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center space-x-2">
+          <button onclick="window.importPreviewModal ? window.importPreviewModal.open(1) : window.tacticalApp.openImportModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-cyan-300 border border-slate-700 transition">
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span>Dynamic Importer</span>
+          </button>
+
+          <button onclick="window.roundDrawBuilder ? window.roundDrawBuilder.open() : window.tacticalApp.openCompetitorModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-semibold transition" title="Change or customize competing clubs & lane draw">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            <span class="font-bold">📋 Round Draw Builder</span>
+          </button>
+
+          <a href="../ScorePredictionView.html" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition">
+            <span>Score Engine &rarr;</span>
+          </a>
+
+          <a href="../index.html" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">
+            <span>&larr; Swimmers Hub</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="tactical-app-container" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
+
+    <!-- ROUND BANNER & ACTIVE CLUBS BAR -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <span class="text-xs text-purple-400 font-bold uppercase tracking-wider font-mono">ACTIVE FIXTURE</span>
+          <h2 id="active-gala-title" class="text-xl font-black text-white">National Arena Swimming League 2026 Round 2 - Division 1 (Plymouth)</h2>
+          <p id="active-gala-meta" class="text-xs text-slate-400">Date: 2026-11-08 &bull; Venue: Plymouth Life Centre (25m) &bull; 8-Lane Scoring</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="window.tacticalApp.resetAllSwaps()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
+            🔄 Reset All Swaps
+          </button>
+        </div>
+      </div>
+
+      <!-- Competing 8 Clubs Lane Badges -->
+      <div>
+        <span class="text-[11px] text-slate-400 block mb-2 font-medium">Competing Clubs & Assigned Lanes:</span>
+        <div id="competing-clubs-row" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- REAL-TIME PROJECTED POINTS BAR & KPI CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      
+      <!-- Weston Projected Points & Live Delta -->
+      <div class="bg-slate-900 border border-cyan-500/40 rounded-xl p-4 shadow-sm bg-gradient-to-b from-cyan-950/20 to-slate-900 md:col-span-2">
+        <div class="flex items-center justify-between text-xs text-cyan-400 mb-1">
+          <span class="font-bold uppercase tracking-wider flex items-center space-x-1.5">
+            <span>Weston SC Projected Points</span>
+            <span id="weston-sync-status-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-500/20 text-emerald-300 font-mono">Live Harmonized</span>
+          </span>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="window.tacticalApp.syncWithRaceManager(true)" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition" title="Fetch latest swimmer selections directly from Arena Race Mgr">
+              🔄 Sync Race Mgr
+            </button>
+            <span id="weston-live-delta-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              Official Lineup Active
+            </span>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mt-1">
+          <div class="flex items-baseline space-x-3">
+            <span id="weston-projected-points" class="text-3xl sm:text-4xl font-black font-mono text-white">139.5</span>
+            <span class="text-xs text-slate-400">/ 408 pts max</span>
+            <span id="weston-projected-rank" class="text-xl font-black text-cyan-300">#7 Overall</span>
+          </div>
+
+          <!-- Scoring Model Mode Switcher -->
+          <div class="inline-flex rounded-lg bg-slate-950 p-0.5 border border-slate-800 text-[11px] self-start sm:self-auto">
+            <button id="btn-mode-h2h" onclick="window.tacticalApp.setScoringMode('h2h')" class="px-2 py-1 rounded font-bold bg-cyan-500 text-slate-950 transition">
+              Gala Matchup (<span id="btn-mode-h2h-pts">139.5</span>)
+            </button>
+            <button id="btn-mode-bench" onclick="window.tacticalApp.setScoringMode('benchmark')" class="px-2 py-1 rounded font-medium text-slate-400 hover:text-white transition">
+              SE Benchmark (<span id="btn-mode-bench-pts">130</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-Time Visual Bar -->
+        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700/60 mt-3">
+          <div id="weston-points-progress-bar" class="h-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500" style="width: 34.2%;"></div>
+        </div>
+
+        <div class="flex flex-wrap justify-between items-center text-[11px] text-slate-400 mt-2 gap-1">
+          <div class="flex items-center space-x-2">
+            <span>Race Mgr Benchmark: <strong id="weston-benchmark-pts" class="text-cyan-300 font-mono">130 pts</strong></span>
+            <span>&bull;</span>
+            <span>Gala H2H Matchup: <strong id="weston-h2h-pts" class="text-purple-300 font-mono">139.5 pts</strong></span>
+            <span>(<span id="weston-variance-pts" class="text-emerald-400 font-bold font-mono">+9.5 net</span>)</span>
+          </div>
+          <div>
+            <span id="weston-margin-lead">Margin to Truro (1st): -226 pts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- High-Risk Races Alert -->
+      <div class="bg-slate-900 border border-amber-500/30 rounded-xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-amber-400 mb-1">
+          <span class="font-bold uppercase tracking-wider">High-Risk Points</span>
+          <span class="text-amber-400 font-bold text-sm pulse-amber">⚠️</span>
+        </div>
+        <div id="kpi-high-risk-count" class="text-2xl sm:text-3xl font-black text-amber-300">0</div>
+        <p class="text-xs text-slate-400 mt-1">
+          Seeded 1st or 2nd by &lt; 0.35s margin.
+        </p>
+      </div>
+
+      <!-- Easy Pickups Alert -->
+      <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-emerald-400 mb-1">
+          <span class="font-bold uppercase tracking-wider">Easy Pickups</span>
+          <span class="text-emerald-400 font-bold text-sm">🎯</span>
+        </div>
+        <div id="kpi-easy-pickups-count" class="text-2xl sm:text-3xl font-black text-emerald-300">0</div>
+        <p class="text-xs text-slate-400 mt-1">
+          Trailing next place by &lt; 0.50s (3rd-5th).
+        </p>
+      </div>
+
+    </div>
+
+    <!-- MAIN TACTICAL WORKBENCH TABS -->
+    <div class="border-b border-slate-800">
+      <nav class="flex space-x-6 overflow-x-auto text-xs font-semibold" aria-label="Tabs">
+        <button class="tactical-tab-btn py-3 px-1 border-b-2 border-purple-400 text-purple-400 flex items-center space-x-2 whitespace-nowrap" data-tab="opportunities">
+          <span>🔍 Opportunity Finder</span>
+        </button>
+        <button class="tactical-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="swapper">
+          <span>🔄 Interactive Swimmer Swapper</span>
+        </button>
+        <button class="tactical-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="relay-auto">
+          <span>⚡ Relay Auto-Composer &amp; Cannon Optimizer</span>
+        </button>
+        <button class="tactical-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="side-by-side">
+          <span>📋 51-Event Gala Programme Matrix</span>
+        </button>
+        <button class="tactical-tab-btn py-3 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap" data-tab="alignment">
+          <span>⚖️ Alignment & Mismatch Inspector</span>
+          <span id="alignment-badge-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono">--</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- TAB 1: OPPORTUNITY FINDER PANEL -->
+    <div class="tactical-tab-panel space-y-6" data-panel="opportunities">
+      
+      <!-- High Risk Warning Section -->
+      <div class="space-y-3">
+        <div class="flex items-center space-x-2">
+          <span class="w-3 h-3 rounded-full bg-amber-400 pulse-amber"></span>
+          <h3 class="font-black text-base text-white">Vulnerable Lead Alerts (Seeded 1st or 2nd by &lt; 0.35s)</h3>
+        </div>
+        <div id="high-risk-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Easy Pickups Section -->
+      <div class="space-y-3 pt-4 border-t border-slate-800">
+        <div class="flex items-center space-x-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+          <h3 class="font-black text-base text-white">Easy Points Pickups (Trailing by &lt; 0.50s in 3rd–5th)</h3>
+        </div>
+        <div id="easy-pickups-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: INTERACTIVE SWIMMER SWAPPER -->
+    <div class="tactical-tab-panel space-y-5 hidden" data-panel="swapper">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        <div>
+          <h3 class="font-black text-base text-white">Interactive Swimmer Swapper & What-If Roster Simulator</h3>
+          <p class="text-xs text-slate-400">
+            Select an event to explore alternative swimmers registered in the multi-round database. Points and team rank deltas recalculate in real-time.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Event Selector -->
+          <div class="sm:col-span-2">
+            <label class="text-xs font-semibold text-slate-300 block mb-1">Select Event to Modify:</label>
+            <select id="swap-event-select" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400 font-medium">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Current Swimmer Info -->
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <span class="text-[11px] text-slate-400 block">Current Seed Entry:</span>
+            <span id="swap-current-entry-name" class="font-bold text-white text-sm block truncate">Austin Hodder</span>
+            <span id="swap-current-entry-time" class="font-mono text-cyan-400 text-xs font-bold">1:00.10 (Rank #2 &bull; 7 pts)</span>
+          </div>
+        </div>
+
+        <!-- Available Swimmers Candidates -->
+        <div class="space-y-2 pt-2 border-t border-slate-800">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Available Roster Swimmers in Database</h4>
+            <span class="text-[11px] text-slate-500">Fastest historical personal bests across rounds</span>
+          </div>
+
+          <div id="swap-candidates-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Manual Custom Time Override -->
+        <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center gap-3">
+          <span class="text-xs text-slate-400 font-semibold">Custom Time Entry:</span>
+          <input id="swap-manual-name" type="text" placeholder="Swimmer Name" class="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400" />
+          <input id="swap-manual-time" type="text" placeholder="mm:ss.ms" class="w-24 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white font-mono text-center outline-none focus:border-cyan-400" />
+          <button onclick="window.tacticalApp.applyManualSwap()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs transition">
+            Test Custom Time &rarr;
+          </button>
+        </div>
+
+        <!-- Real-Time Swap Impact Live Feedback Box -->
+        <div id="swap-feedback-box" class="p-4 rounded-xl bg-slate-950 border border-slate-800 hidden">
+          <!-- Populated dynamically -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: RELAY AUTO-COMPOSER -->
+    <div class="tactical-tab-panel space-y-5 hidden" data-panel="relay-auto">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        <div>
+          <h3 class="font-black text-base text-white">Relay Auto-Composer &amp; Interactive Leg Editor</h3>
+          <p class="text-xs text-slate-400">
+            Automatically scans the squad database to select fastest 50m flat swimmers (including all 8 distinct age &amp; gender slots for the 8 x 50m Mixed Squadron) and applies flying takeover deductions. Select or edit any leg swimmer to see live composite times and gala points impact.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Relay Event -->
+          <div class="sm:col-span-2">
+            <label class="text-xs font-semibold text-slate-300 block mb-1">Target Relay Event:</label>
+            <select id="auto-relay-event-select" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white outline-none focus:border-purple-400 font-medium">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Flying Takeover Slider -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300 font-semibold">Takeover Deduction:</span>
+              <span id="auto-relay-takeover-val" class="font-mono text-purple-400 font-bold">-0.60s</span>
+            </div>
+            <input id="auto-relay-takeover-slider" type="range" min="0.40" max="0.90" step="0.05" value="0.60" 
+                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-400" />
+          </div>
+        </div>
+
+        <!-- Event 50 Cannon Strategy Selector Panel (Shown for 8x50m Cannon / Squadron) -->
+        <div id="auto-relay-cannon-strategy-box" class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-purple-500/20">
+            <span class="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>🎯</span>
+              <span>8x50m Cannon Tactical Lineup Strategy</span>
+            </span>
+            <span class="text-[10px] text-purple-400 font-mono">Preserves eligibility: 1 boy &amp; 1 girl from 9/11, 13/u, 15/u, Open</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2 space-y-1">
+              <label class="text-[11px] font-semibold text-slate-300 block">Selectable Cannon Strategy Mode:</label>
+              <select id="auto-relay-cannon-strategy" onchange="window.tacticalApp.updateCannonStrategy(this.value)" 
+                      class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-purple-500/40 text-xs text-white outline-none focus:border-purple-400 font-medium">
+                <option value="TRADITIONAL">1. TRADITIONAL — Ascending Age (9/11 → 13/u → 15/u → Open)</option>
+                <option value="REVERSE_FRONTLOAD">2. REVERSE FRONTLOAD — Descending Age (Open → 15/u → 13/u → 9/11)</option>
+                <option value="PURE_SPEED_DESC">3. PURE SPEED DESC — Fastest to Slowest 50m Free PB</option>
+                <option value="SANDWICH_BUFFER">4. SANDWICH BUFFER — Fastest Open Lead, 9/11 &amp; 13/u Middle, Open Anchor</option>
+                <option value="HUNTER_ANCHOR">5. HUNTER ANCHOR — 15/u → 13/u → 9/11 → Open Anchor Surge</option>
+              </select>
+            </div>
+
+            <div class="space-y-1.5 p-2 rounded-lg bg-slate-950/80 border border-purple-500/20 text-xs">
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-slate-400">Leg 1 Flat-Start Penalty:</span>
+                <span id="auto-relay-flat-start-val" class="font-mono text-amber-400 font-bold">+0.65s</span>
+              </div>
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-slate-400">Legs 2–8 Flying Delta:</span>
+                <span id="auto-relay-cannon-flying-val" class="font-mono text-cyan-400 font-bold">-0.45s</span>
+              </div>
+              <div class="flex justify-between items-center text-[11px] pt-1 border-t border-slate-800">
+                <span class="text-slate-400">Fatigue Model:</span>
+                <span class="font-mono text-purple-300 font-bold">+0.20s/race (>3 races)</span>
+              </div>
+              <div class="text-[10px] text-slate-500 pt-1 border-t border-slate-800">
+                Dynamic flat/flying deltas &bull; &le;0.30s fresher legs priority &bull; Events 46–49 back-to-back protection.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-Compose Action -->
+        <div>
+          <button onclick="window.tacticalApp.runRelayAutoCompose()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-md shadow-purple-500/20 transition flex items-center space-x-2">
+            <span>⚡ Auto-Compose Optimal Team</span>
+          </button>
+        </div>
+
+        <!-- Auto-Composed Legs Results -->
+        <div id="auto-relay-results-container" class="space-y-3 pt-2 border-t border-slate-800">
+          <!-- Populated dynamically -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 4: SIDE-BY-SIDE EVENT FIELD MATRIX -->
+    <div class="tactical-tab-panel space-y-4 hidden" data-panel="side-by-side">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="font-black text-base text-white">Full 51-Event Gala Programme &amp; Field Matrix</h3>
+          <p class="text-xs text-slate-400">Shows all 8 clubs with seed times, ranks, and points for each event in the programme.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <input id="matrix-search-input" type="text" placeholder="Search event..." 
+                 class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400 w-44" />
+          <select id="matrix-stroke-filter" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400">
+            <option value="ALL">All Strokes</option>
+            <option value="BACK">Backstroke</option>
+            <option value="FLY">Butterfly</option>
+            <option value="BREAST">Breaststroke</option>
+            <option value="FREE">Freestyle</option>
+            <option value="MEDLEY">Medley</option>
+            <option value="RELAY">Relays</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="matrix-events-container" class="space-y-4">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <!-- TAB 5: SCORE ALIGNMENT & MISMATCH INSPECTOR -->
+    <div class="tactical-tab-panel space-y-5 hidden" data-panel="alignment">
+      
+      <!-- Educational Context Banner -->
+      <div class="p-4 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 text-xs space-y-2">
+        <div class="flex items-center space-x-2">
+          <span class="w-6 h-6 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">⚖️</span>
+          <h4 class="font-bold text-white text-sm">Understanding Score Alignment: Why Do The Projections Differ?</h4>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-300 pt-1">
+          <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 space-y-1">
+            <span class="font-bold text-cyan-300 block">1. Arena Race Mgr Benchmark Score (<span id="inspect-bench-summary-pts">130</span> pts)</span>
+            <p class="text-slate-400 text-[11px] leading-relaxed">
+              Calculated using the official Swim England Division 1 Benchmark Matrix (percentile bands P1 through P8). Evaluates each swimmer's seed against the general division standard.
+            </p>
+          </div>
+          <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 space-y-1">
+            <span class="font-bold text-purple-300 block">2. Gala Head-to-Head Simulation Score (<span id="inspect-h2h-summary-pts">139.5</span> pts)</span>
+            <p class="text-slate-400 text-[11px] leading-relaxed">
+              Simulated directly against the actual 7 rival clubs drawn for Round 2 Plymouth (Truro, Swindon, Caradon, Brixham, Bradford, NCD, Bridgwater). Reveals real match-day opportunities where specific opponents are slower or faster than the general benchmark.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary KPI Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-bold uppercase block">Net Gala Variance</span>
+          <span id="inspect-net-variance" class="text-xl sm:text-2xl font-black font-mono text-emerald-400">+9.5 pts</span>
+          <span class="text-[10px] text-slate-500 block">Matchup vs Benchmark</span>
+        </div>
+        <div class="bg-slate-900 p-3 rounded-xl border border-emerald-500/30">
+          <span class="text-[10px] text-emerald-400 font-bold uppercase block">Upside Events</span>
+          <span id="inspect-upside-count" class="text-xl sm:text-2xl font-black font-mono text-emerald-300">12 Races</span>
+          <span id="inspect-upside-points" class="text-[10px] text-emerald-400/80 block">+44.5 pts picked up</span>
+        </div>
+        <div class="bg-slate-900 p-3 rounded-xl border border-rose-500/30">
+          <span class="text-[10px] text-rose-400 font-bold uppercase block">Risk Events</span>
+          <span id="inspect-risk-count" class="text-xl sm:text-2xl font-black font-mono text-rose-300">14 Races</span>
+          <span id="inspect-risk-points" class="text-[10px] text-rose-400/80 block">-35.0 pts vs rival pace</span>
+        </div>
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-bold uppercase block">Aligned Events</span>
+          <span id="inspect-aligned-count" class="text-xl sm:text-2xl font-black font-mono text-slate-300">25 Races</span>
+          <span class="text-[10px] text-slate-500 block">Perfect Agreement</span>
+        </div>
+      </div>
+
+      <!-- Filter Controls & Search -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs">
+        <div class="flex flex-wrap items-center gap-1.5" id="alignment-filter-pills">
+          <button data-filter="all" class="px-2.5 py-1 rounded-md font-bold bg-cyan-500 text-slate-950 transition alignment-filter-btn">
+            All 51 Events
+          </button>
+          <button data-filter="mismatches" class="px-2.5 py-1 rounded-md font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition alignment-filter-btn">
+            ⚡ Mismatches Only (<span id="pill-count-mismatches">26</span>)
+          </button>
+          <button data-filter="upside" class="px-2.5 py-1 rounded-md font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 transition alignment-filter-btn">
+            🟢 Upside Races (<span id="pill-count-upside">12</span>)
+          </button>
+          <button data-filter="risk" class="px-2.5 py-1 rounded-md font-medium bg-slate-800 hover:bg-slate-700 text-rose-300 transition alignment-filter-btn">
+            🔴 Risk Races (<span id="pill-count-risk">14</span>)
+          </button>
+          <button data-filter="aligned" class="px-2.5 py-1 rounded-md font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 transition alignment-filter-btn">
+            ⚪ Aligned (<span id="pill-count-aligned">25</span>)
+          </button>
+        </div>
+        <div>
+          <input id="alignment-search-input" type="text" placeholder="Search swimmer or event..." 
+                 class="px-3 py-1 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400 w-48" />
+        </div>
+      </div>
+
+      <!-- Mismatch Events Table -->
+      <div class="overflow-x-auto bg-slate-900 rounded-xl border border-slate-800 shadow-sm">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] border-b border-slate-800">
+            <tr>
+              <th class="py-2.5 px-3">Race</th>
+              <th class="py-2.5 px-3">Event Title</th>
+              <th class="py-2.5 px-3">Weston Entrant & Time</th>
+              <th class="py-2.5 px-3 text-center">SE Benchmark</th>
+              <th class="py-2.5 px-3 text-center">Gala Matchup</th>
+              <th class="py-2.5 px-3 text-center">Variance (&Delta;)</th>
+              <th class="py-2.5 px-3">Rival Field Context</th>
+              <th class="py-2.5 px-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="alignment-table-body" class="divide-y divide-slate-800/60 font-sans">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- DYNAMIC INGESTION MODAL -->
+  <div id="importer-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold">📥</span>
+          <div>
+            <h3 class="font-bold text-white text-base">Dynamic Gala Data Ingestion</h3>
+            <p class="text-xs text-slate-400">Paste OCR text or export/import database JSON state</p>
+          </div>
+        </div>
+        <button onclick="window.tacticalApp.closeImportModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-4 space-y-4 overflow-y-auto flex-grow text-xs">
+        
+        <!-- Tab Switcher between OCR and JSON -->
+        <div class="flex border-b border-slate-800 pb-2 space-x-4">
+          <button id="import-tab-ocr-btn" onclick="window.tacticalApp.switchImportTab('ocr')" class="font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1">
+            1. Paste Raw Gala Text / OCR
+          </button>
+          <button id="import-tab-json-btn" onclick="window.tacticalApp.switchImportTab('json')" class="font-bold text-slate-400 hover:text-white pb-1">
+            2. JSON Database State Backup / Restore
+          </button>
+        </div>
+
+        <!-- Panel 1: OCR Text Area -->
+        <div id="import-panel-ocr" class="space-y-3">
+          <div class="space-y-1">
+            <label class="font-semibold text-slate-300 block">Round Name / Fixture Label:</label>
+            <input id="import-round-label" type="text" value="Round 1 Millfield" class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:border-cyan-400 outline-none" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="font-semibold text-slate-300 block">Paste Gala Sheet Text (Handles :104.72, 240.14:, 0:00.00, etc.):</label>
+            <textarea id="import-ocr-text" rows="7" placeholder="Event 1 Women Open 200m Ind Medley&#10;1 Truro City S. Bennett 2:23.80 8&#10;2 Caradon J. Tremayne :104.72 7&#10;3 Brixham E. Jones 0:00.00" class="w-full p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs focus:border-cyan-400 outline-none"></textarea>
+          </div>
+
+          <div id="import-feedback" class="text-xs font-semibold"></div>
+
+          <button onclick="window.tacticalApp.executeOcrImport()" class="w-full py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs transition">
+            Parse & Merge into timesDB &rarr;
+          </button>
+        </div>
+
+        <!-- Panel 2: JSON Backup / Restore -->
+        <div id="import-panel-json" class="space-y-3 hidden">
+          <p class="text-slate-400">Export your multi-round times registry to save backups or import a JSON file to restore state.</p>
+          
+          <div class="flex items-center space-x-2">
+            <button onclick="window.tacticalApp.downloadDatabaseJSON()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-semibold border border-slate-700 text-xs">
+              💾 Download JSON State
+            </button>
+            <button onclick="window.tacticalApp.copyDatabaseJSON()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold border border-slate-700 text-xs">
+              📋 Copy to Clipboard
+            </button>
+          </div>
+
+          <div class="space-y-1 pt-2 border-t border-slate-800">
+            <label class="font-semibold text-slate-300 block">Restore Database from JSON String:</label>
+            <textarea id="import-json-text" rows="5" placeholder="Paste exported JSON here..." class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs focus:border-cyan-400 outline-none"></textarea>
+            <button onclick="window.tacticalApp.restoreDatabaseJSON()" class="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
+              Restore JSON State
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-3 border-t border-slate-800 flex justify-end bg-slate-950/60">
+        <button onclick="window.tacticalApp.closeImportModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUND SETUP & COMPETITOR SELECTOR MODAL -->
+  <div id="competitor-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">🏁</span>
+          <h3 class="font-bold text-white text-base">Select 8 Competing Clubs for Round</h3>
+        </div>
+        <button onclick="window.tacticalApp.closeCompetitorModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-4 space-y-3 text-xs max-h-[60vh] overflow-y-auto">
+        <p class="text-slate-400">Choose the 8 clubs swimming in this gala. Seed times will be auto-loaded from timesDB (with automatic 50th percentile median imputation for any missing clubs):</p>
+        
+        <div id="competitor-lanes-inputs" class="space-y-2">
+          <!-- Populated dynamically with 8 lane selectors -->
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-950/60">
+        <button onclick="window.tacticalApp.closeCompetitorModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+          Cancel
+        </button>
+        <button onclick="window.tacticalApp.saveCompetitorLineup()" class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs transition">
+          Update Fixture Lineup &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RELAY SWIMMER SWITCHER & BROWSER MODAL -->
+  <div id="relay-swimmer-picker-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center text-sm font-bold">⇄</span>
+          <div>
+            <h3 id="relay-picker-title" class="font-bold text-white text-sm">Switch Swimmer — Leg 1</h3>
+            <p id="relay-picker-subtitle" class="text-[11px] text-slate-400">Girls 9-11 (50m Freestyle)</p>
+          </div>
+        </div>
+        <button onclick="window.tacticalApp.closeRelaySwimmerPicker()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-4 space-y-4 overflow-y-auto flex-grow text-xs">
+        <!-- Search and Filter Controls -->
+        <div class="flex items-center space-x-2">
+          <input id="relay-picker-search" type="text" placeholder="Search swimmer name..." 
+                 class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400" />
+          <label class="flex items-center space-x-1.5 text-slate-300 cursor-pointer whitespace-nowrap text-[11px]">
+            <input id="relay-picker-allow-swimup" type="checkbox" class="accent-cyan-400 rounded" />
+            <span>Allow Swim-Up (All Ages)</span>
+          </label>
+        </div>
+
+        <!-- Add New Swimmer Form Directly in Modal -->
+        <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+          <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">+ Add New Swimmer to this Age Group:</span>
+          <div class="flex items-center space-x-2">
+            <input id="relay-picker-new-name" type="text" placeholder="Swimmer Name" class="w-2/3 px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-cyan-400" />
+            <input id="relay-picker-new-time" type="text" placeholder="Split (e.g. 35.50)" class="w-1/3 px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs text-cyan-300 font-mono text-center outline-none focus:border-cyan-400" />
+            <button onclick="window.tacticalApp.submitRelayPickerNewSwimmer()" class="px-3 py-1.5 rounded bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs whitespace-nowrap transition">
+              Add &amp; Assign &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Candidate Swimmers List -->
+        <div class="space-y-1.5">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Available Squad Swimmers in Registry:</span>
+          <div id="relay-picker-candidates-list" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 border-t border-slate-800 flex justify-end bg-slate-950/60">
+        <button onclick="window.tacticalApp.closeRelaySwimmerPicker()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT INCLUDES -->
+  <script src="../timeUtils.js"></script>
+  <script src="../round1Data.js"></script>
+  <script src="../data/westonRosterTimes.js"></script>
+  <script src="../predictionEngine.js"></script>
+  <script src="../modules/dataSanitizer.js"></script>
+  <script src="../modules/storageManager.js"></script>
+  <script src="../modules/galaImporter.js"></script>
+  <script src="../modules/lineupOptimizer.js"></script>
+  <script src="ImportPreviewModal.js"></script>
+  <script src="RoundDrawBuilder.js"></script>
+  <script src="TacticalDashboardView.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      window.tacticalApp = new TacticalDashboardViewController();
+      window.tacticalApp.init();
+      window.importPreviewModal = new ImportPreviewModal(window.tacticalApp.storage, () => {
+        window.tacticalApp.refreshPredictorFromStorage();
+        window.tacticalApp.renderAll();
+      });
+      window.roundDrawBuilder = new RoundDrawBuilder(window.tacticalApp.storage, (activeGala) => {
+        window.tacticalApp.refreshPredictorFromStorage();
+        window.tacticalApp.renderAll();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -39,7 +39,9 @@ def main():
 
     # Step 1b: Re-generate County & Regional Qualifiers Standards
     print("\n1b. Generating County & Regional Qualifiers Standards...")
-    qualifiers_builder = os.path.join(BASE_DIR, 'scripts', 'build_qualifiers_data.py')
+    qualifiers_builder = os.path.join(BASE_DIR, 'build_qualifiers_data.py')
+    if not os.path.exists(qualifiers_builder):
+        qualifiers_builder = os.path.join(BASE_DIR, 'scripts', 'build_qualifiers_data.py')
     if os.path.exists(qualifiers_builder):
         res_q = subprocess.run([sys.executable, qualifiers_builder], cwd=BASE_DIR)
         if res_q.returncode == 0:
@@ -65,29 +67,53 @@ def main():
         print(f"❌ ERROR verifying datasets: {e}")
         sys.exit(1)
 
+def find_git_binary():
+    try:
+        res = subprocess.run(["git", "--version"], capture_output=True, text=True)
+        if res.returncode == 0:
+            return "git"
+    except Exception:
+        pass
+    for p in [r"C:\Program Files\Git\cmd\git.exe", r"C:\Program Files\Git\bin\git.exe"]:
+        if os.path.exists(p):
+            return p
+    return None
+
     # Step 3: Git Commit & Push (if running locally with git configured)
     if os.environ.get('GITHUB_ACTIONS') == 'true':
         print("\n3. Running in GitHub Actions. Git commit and push will be handled by the workflow step.")
     else:
         print("\n3. Checking Git Repository Status...")
-        try:
-            git_check = subprocess.run(["git", "--version"], capture_output=True, text=True)
-            if git_check.returncode == 0:
-                print("   Git detected. Committing and pushing updates...")
-                subprocess.run([
-                    "git", "add",
-                    "raw_data.js", "raw_data.csv", "roster.json", "qualifiers_standards.js",
-                    "weston-sc-swimmers/raw_data.js", "weston-sc-swimmers/qualifiers_standards.js",
-                    "src/raw_data.js", "src/qualifiers_standards.js",
-                    "V1 code base/raw_data.js", "data/raw_data.csv", "scripts/roster.json"
-                ], cwd=BASE_DIR)
-                commit_msg = f"Auto-update Swim England PBs [{records_count} records]"
-                subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR)
-                subprocess.run(["git", "push"], cwd=BASE_DIR)
-                print("✅ Git commit and push completed successfully!")
+        git_bin = find_git_binary()
+        if git_bin:
+            print(f"   Git detected ({git_bin}). Committing and pushing updates...")
+            subprocess.run([
+                git_bin, "add",
+                "raw_data.js", "raw_data.csv", "roster.json", "qualifiers_standards.js",
+                "weston-sc-swimmers/raw_data.js", "weston-sc-swimmers/qualifiers_standards.js",
+                "src/raw_data.js", "src/qualifiers_standards.js",
+                "V1 code base/raw_data.js", "data/raw_data.csv", "scripts/roster.json"
+            ], cwd=BASE_DIR)
+            commit_msg = f"Auto-update Swim England PBs [{records_count} records]"
+            subprocess.run([git_bin, "commit", "-m", commit_msg], cwd=BASE_DIR)
+            res_push = subprocess.run([git_bin, "push", "origin", "main"], cwd=BASE_DIR)
+            if res_push.returncode == 0:
+                print("✅ Git commit and push to weston-sc-dashboard completed successfully!")
             else:
-                print("ℹ️ Git CLI not in PATH. Skipping git push.")
-        except Exception:
+                print("⚠️ Git commit completed, but push returned non-zero code. Check your network or GitHub login.")
+
+            # Also commit and push to the live dashboard repository (weston-sc-swimmers)
+            swimmers_dir = os.path.join(BASE_DIR, 'weston-sc-swimmers')
+            if os.path.exists(os.path.join(swimmers_dir, '.git')):
+                print("\n   Updating live dashboard repository (weston-sc-swimmers)...")
+                subprocess.run([git_bin, "add", "raw_data.js", "qualifiers_standards.js"], cwd=swimmers_dir)
+                subprocess.run([git_bin, "commit", "-m", f"Auto-update Swim England PBs [{records_count} records]"], cwd=swimmers_dir)
+                res_swimmers_push = subprocess.run([git_bin, "push", "origin", "main"], cwd=swimmers_dir)
+                if res_swimmers_push.returncode == 0:
+                    print("✅ Live dashboard (weston-sc-swimmers) updated and pushed successfully!")
+                else:
+                    print("⚠️ Live dashboard push returned non-zero code.")
+        else:
             print("ℹ️ Git CLI not detected. Data files are updated locally and ready for web upload.")
 
     print("\n========================================================")

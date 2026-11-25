@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weston SC Race Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .active-tab {
+            border-bottom: 3px solid #2563eb;
+            color: #2563eb;
+            font-weight: 600;
+        }
+    </style>
+
+    <!-- 
+      ==========================================================================
+      SCRIPT LOADING OPTIONS
+      ==========================================================================
+      
+      OPTION A: ES MODULE MODE (ACTIVE BY DEFAULT)
+      Requires `export const MASTER_DASHBOARD_DATA = ...` at the top of data.js.
+      `app.js` handles importing data.js directly.
+    -->
+    <script type="module" src="./src/app.js"></script>
+
+    <!--
+      OPTION B: STANDARD GLOBAL SCRIPT MODE (ALTERNATIVE)
+      Requires `window.MASTER_DASHBOARD_DATA = ...` or `const MASTER_DASHBOARD_DATA = ...` in data.js.
+      Uncomment the lines below and comment out the Option A script tag above if using this approach:
+      
+      <script src="./data.js"></script>
+      <script src="./src/app.js" defer></script>
+    -->
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header Banner -->
+    <header class="bg-gradient-to-r from-blue-900 via-indigo-800 to-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
+                        <i class="fa-solid fa-swimming-pool text-blue-400"></i> Weston SC Race Dashboard
+                    </h1>
+                    <p class="text-blue-200 text-sm mt-1">Master Sheet Hub: Calendar • Relays • Devlop 26 • County Summary • Arena League • Squad List</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-6 overflow-x-auto text-sm font-medium">
+                <button onclick="switchTab('lookup')" id="tab-lookup" class="py-4 px-2 active-tab flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-magnifying-glass text-blue-600"></i> Swimmer Lookup
+                </button>
+                <button onclick="switchTab('calendar')" id="tab-calendar" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-calendar-days text-indigo-600"></i> Calendar
+                </button>
+                <button onclick="switchTab('relays')" id="tab-relays" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-people-group text-blue-600"></i> Relays Sept 19
+                </button>
+                <button onclick="switchTab('squad-list')" id="tab-squad-list" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-list-check text-purple-600"></i> Squad List
+                </button>
+                <button onclick="switchTab('arena-league')" id="tab-arena-league" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> Arena League
+                </button>
+                <button onclick="switchTab('devlop')" id="tab-devlop" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-line text-amber-600"></i> Devlop 26 Report
+                </button>
+                <button onclick="switchTab('county')" id="tab-county" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-award text-emerald-600"></i> County Summary
+                </button>
+                <button onclick="switchTab('sc-times')" id="tab-sc-times" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-stopwatch text-cyan-600"></i> SC Times 25M
+                </button>
+                <button onclick="switchTab('lc-times')" id="tab-lc-times" class="py-4 px-2 text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-stopwatch text-blue-600"></i> LC Times 50M
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex-1 w-full">
+        <!-- 1. SWIMMER LOOKUP -->
+        <section id="sec-lookup" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-blue-600"></i> Swimmer 360 Profile Search
+                </h2>
+                <p class="text-sm text-slate-500 mb-4">Select or search for a swimmer by full name to view their profile across all master dashboard sheets.</p>
+                <div class="relative max-w-md">
+                    <i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-400"></i>
+                    <input type="text" id="lookup-search" onkeyup="filterLookupDropdown()" placeholder="Type full swimmer name..."
+                           class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select id="lookup-select" onchange="loadSwimmerProfile(this.value)" class="mt-2 w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Select Swimmer --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Profile Output Box -->
+            <div id="profile-container" class="hidden space-y-6">
+                <!-- Header Card -->
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-6 rounded-xl shadow-md flex justify-between items-center">
+                    <div>
+                        <h2 id="prof-name" class="text-2xl font-bold">Swimmer Name</h2>
+                        <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/30 mt-1 inline-block">Weston SC Athlete</span>
+                    </div>
+                </div>
+
+                <!-- 4 Columns Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Col 1: Relays -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                        <h3 class="font-bold text-slate-800 text-md border-b pb-3 mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-users text-blue-600 mr-2"></i> Relays Sept 19</span>
+                            <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Assignments</span>
+                        </h3>
+                        <div id="prof-relays-list" class="space-y-3 flex-1 text-xs"></div>
+                    </div>
+
+                    <!-- Col 2: Squad Membership -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                        <h3 class="font-bold text-slate-800 text-md border-b pb-3 mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-list-check text-purple-600 mr-2"></i> Squad Membership</span>
+                            <span class="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded">Squad</span>
+                        </h3>
+                        <div id="prof-squad-list" class="space-y-2 flex-1 text-xs"></div>
+                    </div>
+
+                    <!-- Col 3: Devlop 26 -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                        <h3 class="font-bold text-slate-800 text-md border-b pb-3 mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-chart-line text-amber-600 mr-2"></i> Devlop 26 Report</span>
+                            <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded">Status</span>
+                        </h3>
+                        <div id="prof-devlop-list" class="space-y-2 flex-1 text-xs"></div>
+                    </div>
+
+                    <!-- Col 4: County Summary -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                        <h3 class="font-bold text-slate-800 text-md border-b pb-3 mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-award text-emerald-600 mr-2"></i> County Summary</span>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">Qualifications</span>
+                        </h3>
+                        <div id="prof-county-list" class="space-y-2 flex-1 text-xs"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CALENDAR -->
+        <section id="sec-calendar" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-indigo-600"></i> Event Calendar
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">Date</th>
+                                <th class="py-3 px-4">Event</th>
+                                <th class="py-3 px-4">Where / Venue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendar-table-body" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. RELAYS SEPT 19 -->
+        <section id="sec-relays" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-100 gap-4">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-people-group text-blue-600"></i> Relays Sept 19 Report
+                    </h2>
+                    <select id="relay-filter-gender" onchange="filterRelaysTable()" class="border border-slate-300 rounded-lg text-xs p-2 bg-white">
+                        <option value="ALL">All Genders</option>
+                        <option value="Boy">Boys</option>
+                        <option value="Girl">Girls</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-semibold text-[11px] border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">EVENT #</th>
+                                <th class="py-3 px-4">CATEGORY</th>
+                                <th class="py-3 px-4">RACE</th>
+                                <th class="py-3 px-4">SWIMMERS</th>
+                                <th class="py-3 px-4 text-right">EST. TEAM TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="relays-table-body" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SQUAD LIST -->
+        <section id="sec-squad-list" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="pb-4 mb-4 border-b border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-purple-600"></i> Squad List & Movements - Sept 2026
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Full breakdown across all 8 club squads and progression pathways.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm min-w-[1000px] border-collapse">
+                        <thead id="squad-list-table-head" class="bg-purple-900 text-white font-bold text-xs"></thead>
+                        <tbody id="squad-list-table-body" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ARENA LEAGUE -->
+        <section id="sec-arena-league" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead id="arena-league-table-head" class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase font-semibold"></thead>
+                    <tbody id="arena-league-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 6. DEVLOP 26 REPORT -->
+        <section id="sec-devlop" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead id="devlop-table-head" class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase font-semibold"></thead>
+                    <tbody id="devlop-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 7. COUNTY SUMMARY -->
+        <section id="sec-county" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead id="county-table-head" class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase font-semibold"></thead>
+                    <tbody id="county-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 8. SHORT COURSE TIMES 25M -->
+        <section id="sec-sc-times" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                            <th class="p-3">Swimmer Name</th>
+                            <th class="p-3">Event</th>
+                            <th class="p-3 font-mono">Time</th>
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Meet / Venue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sc-times-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 9. LONG COURSE TIMES 50M -->
+        <section id="sec-lc-times" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                            <th class="p-3">Swimmer Name</th>
+                            <th class="p-3">Event</th>
+                            <th class="p-3 font-mono">Time</th>
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Meet / Venue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lc-times-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t border-slate-800 mt-auto">
+        <p>Weston SC Race Dashboard • Master Sheet Integration</p>
+    </footer>
+</body>
+</html>
